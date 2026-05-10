@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = loginUtente($email, $password);
             if ($result['success']) {
                 $redirect = match($result['ruolo']) {
-                    'amministratore' => SITE_URL . '/admin/dashboard.php',
-                    'operatore'      => SITE_URL . '/admin/dashboard.php',
+                    'amministratore' => SITE_URL . '/account.php',
+                    'operatore'      => SITE_URL . '/account.php',
                     default          => SITE_URL . '/index.php',
                 };
                 header('Location: ' . $redirect);

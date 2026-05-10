@@ -1,16 +1,12 @@
 <!-- ══════════════════ FOOTER ══════════════════ -->
 <footer class="bg-antracite text-avorio mt-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
       <!-- Colonna 1: Brand -->
       <div>
         <div class="flex items-center gap-3 mb-4">
-          <img 
-            src="<?= SITE_URL ?>/img/logo.png" 
-            alt="Logo Museo Storico Severi" 
-            class="w-10 h-10 object-contain flex-shrink-0"
-          >
+          <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain">
           <div>
             <div class="font-display text-oro font-semibold">Museo Storico Severi</div>
             <div class="text-xs text-gray-400 tracking-widest uppercase">Dal 1987</div>
@@ -53,7 +49,7 @@
     </div>
 
     <hr class="border-gray-700 my-8 oro-line" />
-    <div class="flex flex-col md:flex-row items-center md:items-center justify-between gap-4 text-xs text-gray-500 text-center md:text-left">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
       <span>&copy; <?= date('Y') ?> Museo Storico Severi. Tutti i diritti riservati.</span>
       <span class="font-display italic text-gray-600">«La storia è il testimone dei tempi» — Cicerone</span>
     </div>

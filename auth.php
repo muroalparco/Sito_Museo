@@ -15,7 +15,6 @@ function loginUtente(string $email, string $password): array {
         return ['success' => false, 'message' => 'Email o password non corretti.'];
     }
 
-    // Rigenera sessione per prevenire session fixation
     session_regenerate_id(true);
     $_SESSION['utente_id']    = $utente['id_utente'];
     $_SESSION['utente_nome']  = $utente['nome'];
@@ -25,22 +24,47 @@ function loginUtente(string $email, string $password): array {
     return ['success' => true, 'ruolo' => $utente['ruolo']];
 }
 
+/* ── Normalizzazione risposta sicurezza ────────────────── */
+function normalizzaRispostaSicurezza(string $risposta): string {
+    return mb_strtolower(trim(preg_replace('/\s+/', ' ', $risposta)), 'UTF-8');
+}
+
 /* ── Registrazione ──────────────────────────────────────── */
-function registraUtente(string $nome, string $cognome, string $email, string $password): array {
+function registraUtente(
+    string $nome,
+    string $cognome,
+    string $email,
+    string $password,
+    string $domanda_sicurezza,
+    string $risposta_sicurezza
+): array {
     $pdo = getDB();
 
-    // Controlla email duplicata
     $check = $pdo->prepare('SELECT id_utente FROM Utenti WHERE email = ? LIMIT 1');
     $check->execute([$email]);
+
     if ($check->fetch()) {
         return ['success' => false, 'message' => 'Email già registrata.'];
     }
 
-    $hash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    $ins  = $pdo->prepare(
-        'INSERT INTO Utenti (nome, cognome, email, password_hash, ruolo) VALUES (?,?,?,?,?)'
-    );
-    $ins->execute([$nome, $cognome, $email, $hash, 'visitatore']);
+    $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
+    $rispostaHash = password_hash(normalizzaRispostaSicurezza($risposta_sicurezza), PASSWORD_BCRYPT, ['cost' => 12]);
+
+    $ins = $pdo->prepare(" 
+        INSERT INTO Utenti
+        (nome, cognome, email, password_hash, domanda_sicurezza, risposta_sicurezza_hash, ruolo)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+
+    $ins->execute([
+        $nome,
+        $cognome,
+        $email,
+        $passwordHash,
+        $domanda_sicurezza,
+        $rispostaHash,
+        'visitatore'
+    ]);
 
     return ['success' => true, 'message' => 'Registrazione completata. Puoi effettuare il login.'];
 }
@@ -57,9 +81,9 @@ function logoutUtente(): void {
 }
 
 /* ── Helpers ────────────────────────────────────────────── */
-function isLogged(): bool  { return isset($_SESSION['utente_id']); }
-function isAdmin(): bool   { return ($_SESSION['utente_ruolo'] ?? '') === 'amministratore'; }
-function isOperatore(): bool { return in_array($_SESSION['utente_ruolo'] ?? '', ['operatore','amministratore']); }
+function isLogged(): bool { return isset($_SESSION['utente_id']); }
+function isAdmin(): bool { return ($_SESSION['utente_ruolo'] ?? '') === 'amministratore'; }
+function isOperatore(): bool { return in_array($_SESSION['utente_ruolo'] ?? '', ['operatore', 'amministratore'], true); }
 
 function requireLogin(string $redirect = 'login.php'): void {
     if (!isLogged()) {
