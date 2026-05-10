@@ -29,9 +29,9 @@
         <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h4>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a></li>
-          <li><a href="<?= SITE_URL ?>/pages/esposizioni.php" class="hover:text-oro transition-colors">Esposizioni</a></li>
-          <li><a href="<?= SITE_URL ?>/pages/info.php" class="hover:text-oro transition-colors">Informazioni & Tariffe</a></li>
-          <li><a href="<?= SITE_URL ?>/pages/login.php" class="hover:text-oro transition-colors">Area riservata</a></li>
+          <li><a href="<?= SITE_URL ?>/esposizioni.php" class="hover:text-oro transition-colors">Esposizioni</a></li>
+          <li><a href="<?= SITE_URL ?>/info.php" class="hover:text-oro transition-colors">Informazioni & Tariffe</a></li>
+          <li><a href="<?= SITE_URL ?>/login.php" class="hover:text-oro transition-colors">Area riservata</a></li>
         </ul>
       </div>
 

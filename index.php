@@ -2,9 +2,9 @@
 // ============================================================
 //  Homepage — Museo Storico Severi
 // ============================================================
-require_once __DIR__ . '/includes/config.php';
-require_once __DIR__ . '/includes/db.php';
-require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
 
 $pageTitle = 'Benvenuti';
 
@@ -27,7 +27,7 @@ try {
 $icone = ['🏺','⚔️','🏰','🎨','🖼️'];
 $i = 0;
 
-include __DIR__ . '/includes/header.php';
+include __DIR__ . '/header.php';
 ?>
 
 <!-- ══════════ HERO ══════════ -->
@@ -53,11 +53,11 @@ include __DIR__ . '/includes/header.php';
           Dalle grandi civiltà dell'antichità al Rinascimento italiano, scopri secoli di arte, cultura e innovazione nelle nostre mostre permanenti e temporanee.
         </p>
         <div class="fade-up delay-3 flex flex-wrap gap-4">
-          <a href="pages/esposizioni.php"
+          <a href="esposizioni.php"
              class="btn-oro px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
             Scopri le mostre
           </a>
-          <a href="pages/info.php"
+          <a href="info.php"
              class="btn-outline px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
             Biglietti & Info
           </a>
@@ -141,7 +141,7 @@ include __DIR__ . '/includes/header.php';
           <?= date('d/m/Y', strtotime($esp['data_inizio'])) ?> →
           <?= date('d/m/Y', strtotime($esp['data_fine'])) ?>
         </div>
-        <a href="pages/esposizione.php?id=<?= (int)$esp['id_esposizione'] ?>"
+        <a href="esposizione.php?id=<?= (int)$esp['id_esposizione'] ?>"
            class="text-oro text-xs font-bold uppercase tracking-wide hover:underline">
           Scopri di più →
         </a>
@@ -151,7 +151,7 @@ include __DIR__ . '/includes/header.php';
   </div>
 
   <div class="text-center mt-10">
-    <a href="pages/esposizioni.php"
+    <a href="esposizioni.php"
        class="btn-outline px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
       Tutte le esposizioni
     </a>
@@ -184,12 +184,12 @@ include __DIR__ . '/includes/header.php';
 
     <div class="text-center mt-12">
       <?php if (!isLogged()): ?>
-      <a href="pages/registrazione.php"
+      <a href="registrazione.php"
          class="btn-oro px-10 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
         Registrati e prenota
       </a>
       <?php else: ?>
-      <a href="pages/esposizioni.php"
+      <a href="esposizioni.php"
          class="btn-oro px-10 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
         Prenota ora
       </a>
@@ -209,4 +209,4 @@ include __DIR__ . '/includes/header.php';
   </div>
 </section>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/footer.php'; ?>

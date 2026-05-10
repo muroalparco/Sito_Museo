@@ -118,16 +118,16 @@ require_once __DIR__ . '/auth.php';
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </button>
           <div class="nav-menu absolute top-full left-0 w-44 bg-antracite-light rounded shadow-xl py-1 border-t-2 border-oro">
-            <a href="<?= SITE_URL ?>/pages/esposizioni.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Tutte le mostre</a>
-            <a href="<?= SITE_URL ?>/pages/esposizioni.php?stato=Pubblicata" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">In corso</a>
+            <a href="<?= SITE_URL ?>/esposizioni.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Tutte le mostre</a>
+            <a href="<?= SITE_URL ?>/esposizioni.php?stato=Pubblicata" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">In corso</a>
           </div>
         </div>
 
-        <a href="<?= SITE_URL ?>/pages/novita.php"
+        <a href="<?= SITE_URL ?>/novita.php"
            class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors">
           Novità
         </a>
-        <a href="<?= SITE_URL ?>/pages/info.php"
+        <a href="<?= SITE_URL ?>/info.php"
            class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors">
           Info & Tariffe
         </a>
@@ -145,20 +145,20 @@ require_once __DIR__ . '/auth.php';
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <div class="nav-menu absolute top-full right-0 w-48 bg-antracite-light rounded shadow-xl py-1 border-t-2 border-oro">
-              <a href="<?= SITE_URL ?>/pages/account.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Il mio account</a>
-              <a href="<?= SITE_URL ?>/pages/ordini.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">I miei ordini</a>
+              <a href="<?= SITE_URL ?>/account.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Il mio account</a>
+              <a href="<?= SITE_URL ?>/ordini.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">I miei ordini</a>
               <?php if (isOperatore()): ?>
               <hr class="border-antracite my-1">
-              <a href="<?= SITE_URL ?>/pages/admin/" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Pannello Admin</a>
+              <a href="<?= SITE_URL ?>/admin/" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Pannello Admin</a>
               <?php endif; ?>
               <hr class="border-antracite my-1">
-              <a href="<?= SITE_URL ?>/pages/logout.php" class="block px-4 py-2 text-red-400 text-sm hover:bg-antracite transition-colors">Logout</a>
+              <a href="<?= SITE_URL ?>/logout.php" class="block px-4 py-2 text-red-400 text-sm hover:bg-antracite transition-colors">Logout</a>
             </div>
           </div>
         <?php else: ?>
-          <a href="<?= SITE_URL ?>/pages/login.php"
+          <a href="<?= SITE_URL ?>/login.php"
              class="btn-outline px-4 py-2 rounded text-sm font-body">Accedi</a>
-          <a href="<?= SITE_URL ?>/pages/registrazione.php"
+          <a href="<?= SITE_URL ?>/registrazione.php"
              class="btn-oro px-4 py-2 rounded text-sm font-body">Registrati</a>
         <?php endif; ?>
       </div>

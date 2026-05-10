@@ -2,8 +2,8 @@
 // ============================================================
 //  Account — Museo Storico Severi
 // ============================================================
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
 
 requireLogin();
 
@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 $ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'amministratore' => 'Amministratore'];
 
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -150,7 +150,7 @@ include __DIR__ . '/../includes/header.php';
           <span><?= $tab[2] ?></span>
         </button>
         <?php endforeach; ?>
-        <a href="<?= SITE_URL ?>/pages/logout.php"
+        <a href="<?= SITE_URL ?>/logout.php"
            class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-red-500 hover:bg-red-50 transition-colors">
           <span class="text-lg">🚪</span> <span>Logout</span>
         </a>
@@ -236,14 +236,14 @@ include __DIR__ . '/../includes/header.php';
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
           <div class="px-6 py-4 border-b border-avorio-dark flex items-center justify-between">
             <h2 class="font-display text-xl font-semibold text-antracite">I miei ordini</h2>
-            <a href="<?= SITE_URL ?>/pages/ordini.php" class="text-xs text-oro hover:underline font-body">Vedi tutti →</a>
+            <a href="<?= SITE_URL ?>/ordini.php" class="text-xs text-oro hover:underline font-body">Vedi tutti →</a>
           </div>
 
           <?php if (empty($ultimiOrdini)): ?>
           <div class="px-6 py-12 text-center">
             <div class="text-5xl mb-4">🎟️</div>
             <p class="text-gray-400 font-body text-sm">Nessun ordine ancora.</p>
-            <a href="<?= SITE_URL ?>/pages/esposizioni.php" class="btn-oro inline-block mt-4 px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
+            <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-oro inline-block mt-4 px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
               Scopri le mostre
             </a>
           </div>
@@ -288,4 +288,4 @@ function showTab(name) {
 showTab('profilo');
 </script>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/footer.php'; ?>

@@ -2,8 +2,8 @@
 // ============================================================
 //  Registrazione — Museo Storico Severi
 // ============================================================
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
 
 if (isLogged()) {
     header('Location: ' . SITE_URL . '/index.php');
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             $result = registraUtente($nome, $cognome, $email, $password);
             if ($result['success']) {
-                header('Location: ' . SITE_URL . '/pages/login.php?registered=1');
+                header('Location: ' . SITE_URL . '/login.php?registered=1');
                 exit;
             } else {
                 $error = $result['message'];
@@ -53,7 +53,7 @@ function fieldClass(string $field, array $errors): string {
         : 'border-gray-200 focus:border-oro focus:ring-1 focus:ring-oro';
 }
 
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -197,9 +197,9 @@ include __DIR__ . '/../includes/header.php';
                      class="mt-1 w-4 h-4 accent-[#C9A84C]" />
               <span class="text-sm text-gray-600 font-body">
                 Ho letto e accetto i
-                <a href="<?= SITE_URL ?>/pages/termini.php" class="text-oro hover:underline">Termini di servizio</a>
+                <a href="<?= SITE_URL ?>/termini.php" class="text-oro hover:underline">Termini di servizio</a>
                 e la
-                <a href="<?= SITE_URL ?>/pages/privacy.php" class="text-oro hover:underline">Privacy Policy</a>.
+                <a href="<?= SITE_URL ?>/privacy.php" class="text-oro hover:underline">Privacy Policy</a>.
                 <span class="text-red-400">*</span>
               </span>
             </label>
@@ -260,4 +260,4 @@ function checkStrength(pw) {
 }
 </script>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/footer.php'; ?>

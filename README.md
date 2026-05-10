@@ -5,18 +5,17 @@
 ```
 museo/
 ├── index.php                  ← Homepage
-├── includes/
-│   ├── config.php             ← Configurazione DB e costanti
-│   ├── db.php                 ← Connessione PDO singleton
-│   ├── auth.php               ← Funzioni login/registrazione/sessione
-│   ├── header.php             ← Header + navbar (incluso in ogni pagina)
-│   └── footer.php             ← Footer (incluso in ogni pagina)
-└── pages/
-    ├── login.php              ← Form di accesso
-    ├── registrazione.php      ← Form di registrazione
-    ├── account.php            ← Profilo utente + ordini
-    ├── logout.php             ← Handler logout
-    └── esposizioni.php        ← Lista mostre
+├── config.php                 ← Configurazione DB e costanti
+├── db.php                     ← Connessione PDO singleton
+├── auth.php                   ← Funzioni login/registrazione/sessione
+├── header.php                 ← Header + navbar
+├── footer.php                 ← Footer
+├── login.php                  ← Form di accesso
+├── registrazione.php          ← Form di registrazione
+├── account.php                ← Profilo utente + ordini
+├── logout.php                 ← Handler logout
+├── esposizioni.php            ← Lista mostre
+└── img/                       ← Cartella immagini
 ```
 
 ## Setup
@@ -32,7 +31,7 @@ mysql -u root -p < biglietteria_museo.sql
 ```
 
 ### 3. Configurazione
-Modifica `includes/config.php`:
+Modifica `config.php`:
 ```php
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'biglietteria_museo');

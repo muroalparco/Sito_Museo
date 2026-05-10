@@ -2,9 +2,9 @@
 // ============================================================
 //  Esposizioni — Museo Storico Severi
 // ============================================================
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/db.php';
-require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
 
 $pageTitle = 'Esposizioni';
 
@@ -34,7 +34,7 @@ $statiLabel = [
 $icone = ['🏺','⚔️','🏰','🎨','🖼️','🗿','📜','🪙'];
 $i = 0;
 
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -116,4 +116,4 @@ include __DIR__ . '/../includes/header.php';
   <?php endif; ?>
 </main>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/footer.php'; ?>

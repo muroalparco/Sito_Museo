@@ -2,8 +2,8 @@
 // ============================================================
 //  Login — Museo Storico Severi
 // ============================================================
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/auth.php';
 
 // Già loggato → redirect home
 if (isLogged()) {
@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = loginUtente($email, $password);
             if ($result['success']) {
                 $redirect = match($result['ruolo']) {
-                    'amministratore' => SITE_URL . '/pages/admin/dashboard.php',
-                    'operatore'      => SITE_URL . '/pages/admin/dashboard.php',
+                    'amministratore' => SITE_URL . '/admin/dashboard.php',
+                    'operatore'      => SITE_URL . '/admin/dashboard.php',
                     default          => SITE_URL . '/index.php',
                 };
                 header('Location: ' . $redirect);
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-include __DIR__ . '/../includes/header.php';
+include __DIR__ . '/header.php';
 ?>
 
 <!-- Breadcrumb -->
@@ -120,7 +120,7 @@ include __DIR__ . '/../includes/header.php';
               <label for="password" class="block text-sm font-body font-bold text-antracite">
                 Password <span class="text-red-400">*</span>
               </label>
-              <a href="pages/recupero_password.php" class="text-xs text-acciaio hover:text-oro transition-colors font-body">
+              <a href="recupero_password.php" class="text-xs text-acciaio hover:text-oro transition-colors font-body">
                 Password dimenticata?
               </a>
             </div>
@@ -175,7 +175,7 @@ include __DIR__ . '/../includes/header.php';
     <!-- Nota visitatori anonimi -->
     <p class="text-center text-xs text-gray-400 mt-4 font-body">
       Puoi anche
-      <a href="<?= SITE_URL ?>/pages/esposizioni.php" class="text-acciaio hover:text-oro transition-colors">
+      <a href="<?= SITE_URL ?>/esposizioni.php" class="text-acciaio hover:text-oro transition-colors">
         esplorare le mostre
       </a>
       senza registrarti.
@@ -183,4 +183,4 @@ include __DIR__ . '/../includes/header.php';
   </div>
 </main>
 
-<?php include __DIR__ . '/../includes/footer.php'; ?>
+<?php include __DIR__ . '/footer.php'; ?>
