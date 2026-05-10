@@ -75,12 +75,12 @@ include __DIR__ . '/header.php';
     <p class="text-gray-400 font-body">Nessuna esposizione trovata.</p>
   </div>
   <?php else: ?>
-  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
     <?php foreach ($esposizioni as $esp): ?>
     <article class="bg-white rounded-xl shadow hover:shadow-xl transition-all duration-300 overflow-hidden border border-avorio-dark group hover:-translate-y-1">
       <div class="h-1.5 bg-oro"></div>
       <div class="p-7">
-        <div class="flex items-start justify-between mb-4">
+        <div class="flex items-start justify-between gap-3 mb-4">
           <span class="text-4xl"><?= $icone[$i++ % count($icone)] ?></span>
           <span class="text-xs px-2 py-1 rounded-full font-body font-bold <?= $statiLabel[$esp['stato']]['class'] ?>">
             <?= $statiLabel[$esp['stato']]['text'] ?>
@@ -92,7 +92,7 @@ include __DIR__ . '/header.php';
         <p class="text-sm text-gray-500 leading-relaxed mb-5 line-clamp-3">
           <?= clean($esp['descrizione'] ?? 'Scopri questa affascinante esposizione al Museo Storico Severi.') ?>
         </p>
-        <div class="border-t border-avorio-dark pt-4 flex items-center justify-between">
+        <div class="border-t border-avorio-dark pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="text-xs text-acciaio font-body">
             <div><?= date('d/m/Y', strtotime($esp['data_inizio'])) ?></div>
             <div>→ <?= date('d/m/Y', strtotime($esp['data_fine'])) ?></div>

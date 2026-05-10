@@ -57,28 +57,25 @@ include __DIR__ . '/header.php';
 </div>
 
 <!-- ══════════ LOGIN FORM ══════════ -->
-<main class="flex-1 flex items-center justify-center py-16 px-4">
+<main class="flex-1 flex items-center justify-center py-10 sm:py-16 px-4">
   <div class="w-full max-w-md fade-up">
 
     <!-- Card -->
     <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-avorio-dark">
 
       <!-- Header card -->
-      <div class="bg-antracite px-8 py-8 text-center">
-        <div class="w-16 h-16 mx-auto mb-4">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="48" fill="none" stroke="#C9A84C" stroke-width="3"/>
-            <polygon points="50,12 88,82 12,82" fill="none" stroke="#C9A84C" stroke-width="3"/>
-            <polygon points="50,30 72,72 28,72" fill="#C9A84C" opacity=".25"/>
-            <text x="50" y="70" text-anchor="middle" font-family="serif" font-size="18" font-weight="bold" fill="#C9A84C">MSS</text>
-          </svg>
-        </div>
-        <h1 class="font-display text-avorio text-2xl font-bold">Accedi al Museo</h1>
+      <div class="bg-antracite px-5 sm:px-8 py-6 sm:py-8 text-center">
+        <img 
+          src="<?= SITE_URL ?>/img/logo.png" 
+          alt="Logo Museo Storico Severi" 
+          class="w-16 h-16 object-contain mx-auto mb-4"
+        >
+        <h1 class="font-display text-avorio text-xl sm:text-2xl font-bold">Accedi al Museo</h1>
         <p class="text-gray-400 text-sm font-body mt-1">Inserisci le tue credenziali</p>
       </div>
 
       <!-- Form body -->
-      <div class="px-8 py-8">
+      <div class="px-5 sm:px-8 py-6 sm:py-8">
 
         <?php if ($success): ?>
         <div class="alert-success p-4 rounded mb-6 text-sm font-body">

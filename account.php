@@ -97,7 +97,7 @@ include __DIR__ . '/header.php';
 <!-- ══════════ ACCOUNT HEADER ══════════ -->
 <section class="bg-antracite py-12">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center gap-6 fade-up">
+    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 fade-up text-center sm:text-left">
       <!-- Avatar -->
       <div class="w-20 h-20 rounded-full bg-oro flex items-center justify-center text-antracite font-bold text-3xl font-display flex-shrink-0">
         <?= strtoupper(substr($utente['nome'], 0, 1)) ?>
@@ -106,7 +106,7 @@ include __DIR__ . '/header.php';
         <h1 class="font-display text-avorio text-2xl md:text-3xl font-bold">
           <?= clean($utente['nome']) ?> <?= clean($utente['cognome']) ?>
         </h1>
-        <p class="text-gray-400 font-body text-sm mt-1"><?= clean($utente['email']) ?></p>
+        <p class="text-gray-400 font-body text-sm mt-1 break-all"><?= clean($utente['email']) ?></p>
         <span class="inline-block mt-2 px-3 py-1 text-xs font-body font-bold uppercase tracking-wide rounded-full
           <?= $utente['ruolo'] === 'amministratore' ? 'bg-oro text-antracite' : ($utente['ruolo'] === 'operatore' ? 'bg-acciaio text-white' : 'bg-gray-600 text-white') ?>">
           <?= $ruoloLabel[$utente['ruolo']] ?>
@@ -163,14 +163,14 @@ include __DIR__ . '/header.php';
       <!-- ── TAB: PROFILO ── -->
       <div id="tab-profilo" class="tab-content">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
-          <div class="px-6 py-4 border-b border-avorio-dark">
+          <div class="px-4 sm:px-6 py-4 border-b border-avorio-dark">
             <h2 class="font-display text-xl font-semibold text-antracite">Il mio profilo</h2>
           </div>
-          <form method="POST" class="px-6 py-6 space-y-5">
+          <form method="POST" class="px-4 sm:px-6 py-6 space-y-5">
             <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
             <input type="hidden" name="action" value="update_profile">
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-body font-bold text-antracite mb-1">Nome</label>
                 <input type="text" name="nome" value="<?= clean($utente['nome']) ?>"
@@ -195,7 +195,7 @@ include __DIR__ . '/header.php';
                      disabled class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-lg font-body text-sm text-gray-400 cursor-not-allowed"/>
             </div>
 
-            <button type="submit" class="btn-oro px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
+            <button type="submit" class="btn-oro w-full sm:w-auto px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
               Salva modifiche
             </button>
           </form>
@@ -205,10 +205,10 @@ include __DIR__ . '/header.php';
       <!-- ── TAB: SICUREZZA ── -->
       <div id="tab-sicurezza" class="tab-content hidden">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
-          <div class="px-6 py-4 border-b border-avorio-dark">
+          <div class="px-4 sm:px-6 py-4 border-b border-avorio-dark">
             <h2 class="font-display text-xl font-semibold text-antracite">Cambia password</h2>
           </div>
-          <form method="POST" class="px-6 py-6 space-y-5">
+          <form method="POST" class="px-4 sm:px-6 py-6 space-y-5">
             <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
             <input type="hidden" name="action" value="change_password">
 
@@ -224,7 +224,7 @@ include __DIR__ . '/header.php';
             </div>
             <?php endforeach; ?>
 
-            <button type="submit" class="btn-oro px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
+            <button type="submit" class="btn-oro w-full sm:w-auto px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
               Aggiorna password
             </button>
           </form>
