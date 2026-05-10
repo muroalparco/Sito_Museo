@@ -17,10 +17,7 @@ museo/
 ├── esposizioni.php
 ├── info.php
 ├── novita.php
-└── img/
-    ├── logo/
-    ├── esposizioni/
-    └── home/
+└── img/...
 ```
 
 Tutti i file PHP sono nella cartella principale. Le sole sottocartelle previste sono dentro `img/`.
