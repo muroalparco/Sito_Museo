@@ -1,7 +1,5 @@
 <?php
-// ============================================================
-//  Connessione PDO — Museo Storico Severi
-// ============================================================
+/* connesione database */
 require_once __DIR__ . '/config.php';
 
 function getDB(): PDO {

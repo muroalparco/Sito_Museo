@@ -1,7 +1,6 @@
 <?php
-// ============================================================
-//  Configurazione database — Museo Storico Severi
-// ============================================================
+/* qua vanno messe le cose per metterlo in un posto diverso da xampp*/
+
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'biglietteria_museo');
 define('DB_USER', 'root');

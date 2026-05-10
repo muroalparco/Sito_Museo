@@ -37,14 +37,14 @@ define('DB_HOST', 'localhost');
 define('DB_NAME', 'biglietteria_museo');
 define('DB_USER', 'root');
 define('DB_PASS', '');
-define('SITE_URL', 'http://localhost/museo_severi_v2');
+define('SITE_URL', 'http://localhost/museo');
 ```
 
-5. Apri `http://localhost/museo_severi_v2`.
+5. Apri `http://localhost/museo`.
 
 ## Nota
 
-I link a `ordini.php`, `recupero_password.php`, `termini.php`, `privacy.php`, `esposizione.php` e area `admin/` sono predisposti, ma le relative pagine non sono incluse in questa versione base.
+I link a `ordini.php`, `recupero_password.php`, `termini.php`, `privacy.php`, `esposizione.php` sono predisposti, ma le relative pagine non sono incluse in questa versione base.
 
 
 ## Logo

@@ -1,7 +1,5 @@
 <?php
-// ============================================================
-//  Homepage — Museo Storico Severi
-// ============================================================
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
@@ -23,23 +21,23 @@ try {
     $esposizioni = [];
 }
 
-// Icone periodo storico (mapping semplice)
+// Icone periodo storico
 $icone = ['🏺','⚔️','🏰','🎨','🖼️'];
 $i = 0;
 
 include __DIR__ . '/header.php';
 ?>
 
-<!-- ══════════ HERO ══════════ -->
+<!-- hero principale  -->
 <section class="relative bg-antracite overflow-hidden">
-  <!-- Sfondo decorativo -->
+  <!-- sfondo decorativo -->
   <div class="absolute inset-0 opacity-10"
        style="background-image: repeating-linear-gradient(45deg, #C9A84C 0, #C9A84C 1px, transparent 0, transparent 50%); background-size: 20px 20px;"></div>
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-28 lg:py-36">
     <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
 
-      <!-- Testo hero -->
+      <!-- testo hero -->
       <div>
         <p class="fade-up text-oro font-body text-sm uppercase tracking-widest mb-3">
           Museo Storico Severi
@@ -64,7 +62,7 @@ include __DIR__ . '/header.php';
         </div>
       </div>
 
-      <!-- Logo decorativo -->
+      <!-- logo decorativo -->
       <div class="flex justify-center items-center fade-up delay-2 order-first md:order-none">
         <div class="relative h-52 sm:h-64 md:h-72 lg:h-80 w-full flex items-center justify-center">
           <img 
@@ -78,7 +76,7 @@ include __DIR__ . '/header.php';
     </div>
   </div>
 
-  <!-- Onda decorativa -->
+  <!-- onda decorativa -->
   <div class="absolute bottom-0 left-0 right-0">
     <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
       <path d="M0 60 C360 0, 1080 0, 1440 60 L1440 60 L0 60 Z" fill="#F5F0E8"/>
@@ -86,14 +84,14 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<!-- ══════════ STATS STRIP ══════════ -->
+<!-- dati sito -->
 <section class="bg-avorio-dark py-8 border-y border-oro border-opacity-30">
   <div class="max-w-5xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
     <?php foreach ([
       ['5','Esposizioni attive'],
       ['10.000+','Visitatori l\'anno'],
       ['3','Servizi extra'],
-      ['1987','Anno di fondazione'],
+      ['2026','Anno di fondazione'],
     ] as $s): ?>
     <div>
       <div class="font-display text-3xl font-bold text-oro"><?= $s[0] ?></div>
@@ -103,7 +101,7 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<!-- ══════════ ESPOSIZIONI IN EVIDENZA ══════════ -->
+<!-- esposizioni in evidenza  -->
 <section class="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
   <div class="text-center mb-12">
     <p class="text-oro font-body text-xs uppercase tracking-widest mb-2">Le nostre mostre</p>
@@ -117,7 +115,7 @@ include __DIR__ . '/header.php';
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
     <?php foreach ($esposizioni as $idx => $esp): ?>
     <article class="bg-white rounded-lg shadow hover:shadow-xl transition-shadow overflow-hidden group border border-avorio-dark">
-      <!-- Intestazione colorata -->
+      <!-- intestazione colorata -->
       <div class="h-2 bg-oro"></div>
 
       <div class="p-6">
@@ -150,7 +148,7 @@ include __DIR__ . '/header.php';
   <?php endif; ?>
 </section>
 
-<!-- ══════════ COME VISITARE ══════════ -->
+<!-- inforamzioni di contatto e cazzate simili -->
 <section class="bg-antracite py-14 sm:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
@@ -189,7 +187,7 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<!-- ══════════ CITAZIONE ══════════ -->
+<!-- ═citazione di giulio cesare (boh chat diceva che ci stava metterla, mi fido) -->
 <section class="py-16 bg-avorio">
   <div class="max-w-3xl mx-auto text-center px-4">
     <div class="text-oro text-5xl font-display leading-none mb-4">"</div>

@@ -1,9 +1,9 @@
-<!-- ══════════════════ FOOTER ══════════════════ -->
+<!-- footer -->
 <footer class="bg-antracite text-avorio mt-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
 
-      <!-- Colonna 1: Brand -->
+      <!-- colonna 1 brand -->
       <div>
         <div class="flex items-center gap-3 mb-4">
           <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain">
@@ -17,7 +17,7 @@
         </p>
       </div>
 
-      <!-- Colonna 2: Link rapidi -->
+      <!-- colonna 2 link -->
       <div>
         <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h4>
         <ul class="space-y-2 text-sm text-gray-400">
@@ -28,7 +28,7 @@
         </ul>
       </div>
 
-      <!-- Colonna 3: Contatti -->
+      <!-- colonna 3 contatti -->
       <div>
         <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Contatti</h4>
         <ul class="space-y-2 text-sm text-gray-400">

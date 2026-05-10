@@ -9,12 +9,12 @@ require_once __DIR__ . '/auth.php';
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><?= clean($pageTitle ?? SITE_NAME) ?> — <?= SITE_NAME ?></title>
 
-  <!-- Google Fonts: Playfair Display + Lato -->
+  <!--  fonts presi da gogle: Playfair Display + Lato -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind css cdn -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -42,7 +42,7 @@ require_once __DIR__ . '/auth.php';
 </head>
 <body class="min-h-screen flex flex-col">
 
-<!-- ══════════════════ HEADER / NAVBAR ══════════════════ -->
+<!-- inizio header / navbar  -->
 <header class="bg-antracite shadow-lg sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-20">
@@ -60,14 +60,14 @@ require_once __DIR__ . '/auth.php';
         </div>
       </a>
 
-      <!-- Nav links (desktop) -->
+      <!-- nav links pc -->
       <nav class="hidden md:flex items-center gap-1">
         <a href="<?= SITE_URL ?>/index.php"
            class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'index.php') ? 'text-oro border-b border-oro' : '' ?>">
           Home
         </a>
 
-        <!-- Esposizioni dropdown -->
+        <!-- dropdown esposizioni -->
         <div class="nav-dropdown relative">
           <button class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors flex items-center gap-1">
             Esposizioni
@@ -89,7 +89,7 @@ require_once __DIR__ . '/auth.php';
         </a>
       </nav>
 
-      <!-- Auth buttons -->
+      <!-- Auth pulsanti  -->
       <div class="flex items-center gap-3">
         <?php if (isLogged()): ?>
           <div class="nav-dropdown relative">
@@ -118,4 +118,4 @@ require_once __DIR__ . '/auth.php';
     </div>
   </div>
 </header>
-<!-- ══════════════════ fine HEADER ══════════════════ -->
+<!--  fine header  -->

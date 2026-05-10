@@ -1,10 +1,7 @@
 <?php
-// ============================================================
-//  Funzioni di autenticazione — Museo Storico Severi
-// ============================================================
 require_once __DIR__ . '/db.php';
 
-/* ── Login ─────────────────────────────────────────────── */
+/*  Login  */
 function loginUtente(string $email, string $password): array {
     $pdo  = getDB();
     $stmt = $pdo->prepare('SELECT * FROM Utenti WHERE email = ? LIMIT 1');
@@ -24,12 +21,12 @@ function loginUtente(string $email, string $password): array {
     return ['success' => true, 'ruolo' => $utente['ruolo']];
 }
 
-/* ── Normalizzazione risposta sicurezza ────────────────── */
+/*  normalizzazione risposta sicurezza  */
 function normalizzaRispostaSicurezza(string $risposta): string {
     return mb_strtolower(trim(preg_replace('/\s+/', ' ', $risposta)), 'UTF-8');
 }
 
-/* ── Registrazione ──────────────────────────────────────── */
+/*  registrazione  */
 function registraUtente(
     string $nome,
     string $cognome,
@@ -69,7 +66,7 @@ function registraUtente(
     return ['success' => true, 'message' => 'Registrazione completata. Puoi effettuare il login.'];
 }
 
-/* ── Logout ─────────────────────────────────────────────── */
+/*  Logout  */
 function logoutUtente(): void {
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
@@ -80,7 +77,7 @@ function logoutUtente(): void {
     session_destroy();
 }
 
-/* ── Helpers ────────────────────────────────────────────── */
+/*  visualizza ruolo  */
 function isLogged(): bool { return isset($_SESSION['utente_id']); }
 function isAdmin(): bool { return ($_SESSION['utente_ruolo'] ?? '') === 'amministratore'; }
 function isOperatore(): bool { return in_array($_SESSION['utente_ruolo'] ?? '', ['operatore', 'amministratore'], true); }
@@ -92,7 +89,7 @@ function requireLogin(string $redirect = 'login.php'): void {
     }
 }
 
-/* ── CSRF token ─────────────────────────────────────────── */
+/* token hash csrf */
 function csrfToken(): string {
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -104,7 +101,7 @@ function verifyCsrf(string $token): bool {
     return hash_equals($_SESSION['csrf_token'] ?? '', $token);
 }
 
-/* ── Sanitize input ─────────────────────────────────────── */
+/* per evitare il coso injeection */
 function clean(string $val): string {
     return htmlspecialchars(trim($val), ENT_QUOTES, 'UTF-8');
 }

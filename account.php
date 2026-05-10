@@ -1,7 +1,4 @@
 <?php
-// ============================================================
-//  Account — Museo Storico Severi
-// ============================================================
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
@@ -94,7 +91,7 @@ include __DIR__ . '/header.php';
   </div>
 </div>
 
-<!-- ══════════ ACCOUNT HEADER ══════════ -->
+<!-- header account -->
 <section class="bg-antracite py-12">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-6 fade-up text-center sm:text-left">
@@ -120,7 +117,7 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<!-- ══════════ TABS CONTENT ══════════ -->
+<!-- contenuto dei tabs + msg errore o todo bien-->
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
   <?php if ($successMsg): ?>
@@ -132,7 +129,7 @@ include __DIR__ . '/header.php';
 
   <div class="grid lg:grid-cols-3 gap-8">
 
-    <!-- SIDEBAR / Nav sezioni -->
+    <!-- sidebar e nav in sezioni -->
     <aside class="lg:col-span-1">
       <nav class="bg-white rounded-xl shadow border border-avorio-dark overflow-hidden">
         <div class="bg-avorio-dark px-5 py-3 border-b border-oro border-opacity-20">
@@ -157,10 +154,10 @@ include __DIR__ . '/header.php';
       </nav>
     </aside>
 
-    <!-- MAIN CONTENT area -->
+    <!-- main -->
     <div class="lg:col-span-2 space-y-6">
 
-      <!-- ── TAB: PROFILO ── -->
+      <!-- sezione profilo -->
       <div id="tab-profilo" class="tab-content">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
           <div class="px-4 sm:px-6 py-4 border-b border-avorio-dark">
@@ -202,7 +199,7 @@ include __DIR__ . '/header.php';
         </div>
       </div>
 
-      <!-- ── TAB: SICUREZZA ── -->
+      <!-- sezione sicurezza -->
       <div id="tab-sicurezza" class="tab-content hidden">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
           <div class="px-4 sm:px-6 py-4 border-b border-avorio-dark">
@@ -231,7 +228,7 @@ include __DIR__ . '/header.php';
         </div>
       </div>
 
-      <!-- ── TAB: ORDINI ── -->
+      <!-- sez ordini -->
       <div id="tab-ordini" class="tab-content hidden">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
           <div class="px-6 py-4 border-b border-avorio-dark flex items-center justify-between">

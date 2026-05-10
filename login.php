@@ -1,11 +1,9 @@
 <?php
-// ============================================================
-//  Login — Museo Storico Severi
-// ============================================================
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
-// Già loggato → redirect home
+// già loggato → redirect home
 if (isLogged()) {
     header('Location: ' . SITE_URL . '/index.php');
     exit;
@@ -56,14 +54,14 @@ include __DIR__ . '/header.php';
   </div>
 </div>
 
-<!-- ══════════ LOGIN FORM ══════════ -->
+<!-- form di login-->
 <main class="flex-1 flex items-center justify-center py-10 sm:py-16 px-4">
   <div class="w-full max-w-md fade-up">
 
-    <!-- Card -->
+    <!-- card -->
     <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-avorio-dark">
 
-      <!-- Header card -->
+      <!-- header card -->
       <div class="bg-antracite px-5 sm:px-8 py-6 sm:py-8 text-center">
         <img 
           src="<?= SITE_URL ?>/img/logo.png" 
@@ -74,7 +72,7 @@ include __DIR__ . '/header.php';
         <p class="text-gray-400 text-sm font-body mt-1">Inserisci le tue credenziali</p>
       </div>
 
-      <!-- Form body -->
+      <!-- form body -->
       <div class="px-5 sm:px-8 py-6 sm:py-8">
 
         <?php if ($success): ?>
@@ -92,7 +90,7 @@ include __DIR__ . '/header.php';
         <form method="POST" novalidate>
           <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
 
-          <!-- Email -->
+          <!-- email -->
           <div class="mb-5">
             <label for="email" class="block text-sm font-body font-bold text-antracite mb-1">
               Email <span class="text-red-400">*</span>
@@ -111,7 +109,7 @@ include __DIR__ . '/header.php';
             </div>
           </div>
 
-          <!-- Password -->
+          <!-- password -->
           <div class="mb-6">
             <div class="flex justify-between items-center mb-1">
               <label for="password" class="block text-sm font-body font-bold text-antracite">
@@ -143,14 +141,14 @@ include __DIR__ . '/header.php';
             </div>
           </div>
 
-          <!-- Submit -->
+          <!-- invia -->
           <button type="submit"
                   class="btn-oro w-full py-3 rounded-lg font-body text-sm uppercase tracking-widest">
             Accedi
           </button>
         </form>
 
-        <!-- Divider -->
+        <!-- divisore -->
         <div class="relative my-6">
           <div class="absolute inset-0 flex items-center">
             <div class="w-full border-t border-gray-200"></div>
@@ -160,7 +158,7 @@ include __DIR__ . '/header.php';
           </div>
         </div>
 
-        <!-- Link registrazione -->
+        <!-- link per registrazione -->
         <p class="text-center text-sm font-body text-gray-500">
           Non hai un account?
           <a href="registrazione.php" class="text-oro font-bold hover:underline">Registrati gratuitamente</a>
@@ -169,7 +167,7 @@ include __DIR__ . '/header.php';
       </div>
     </div>
 
-    <!-- Nota visitatori anonimi -->
+    <!-- se non vuoi loggare -->
     <p class="text-center text-xs text-gray-400 mt-4 font-body">
       Puoi anche
       <a href="<?= SITE_URL ?>/esposizioni.php" class="text-acciaio hover:text-oro transition-colors">
