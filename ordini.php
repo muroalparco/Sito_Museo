@@ -10,8 +10,10 @@ $pdo = getDB();
 $stmt = $pdo->prepare(" 
     SELECT 
         o.id_ordine,
+        o.codice_recupero,
         o.data_acquisto,
         o.importo_totale,
+        o.stato_pagamento,
         COUNT(b.id_biglietto) AS numero_biglietti,
         GROUP_CONCAT(DISTINCT e.titolo SEPARATOR ', ') AS esposizioni
     FROM Ordini o
@@ -19,7 +21,7 @@ $stmt = $pdo->prepare("
     LEFT JOIN Fasce_Orarie f ON b.id_fascia = f.id_fascia
     LEFT JOIN Esposizioni e ON f.id_esposizione = e.id_esposizione
     WHERE o.id_utente = ?
-    GROUP BY o.id_ordine, o.data_acquisto, o.importo_totale
+    GROUP BY o.id_ordine, o.codice_recupero, o.data_acquisto, o.importo_totale, o.stato_pagamento
     ORDER BY o.data_acquisto DESC
 ");
 
@@ -75,6 +77,13 @@ include __DIR__ . '/header.php';
                   <span class="bg-oro/20 text-antracite px-3 py-1 rounded-full text-sm">
                     <?= clean((string)$ordine['numero_biglietti']) ?> biglietto/i
                   </span>
+                  <?php
+                    $statoPagamento = $ordine['stato_pagamento'] ?? 'Pagato';
+                    $statoClass = $statoPagamento === 'Pagato' ? 'bg-green-100 text-green-800' : ($statoPagamento === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700');
+                  ?>
+                  <span class="<?= $statoClass ?> px-3 py-1 rounded-full text-sm">
+                    <?= clean($statoPagamento) ?>
+                  </span>
                 </div>
 
                 <h2 class="font-display text-xl sm:text-2xl font-semibold text-antracite mb-2 break-words">
@@ -85,13 +94,19 @@ include __DIR__ . '/header.php';
                   Data acquisto:
                   <strong><?= date('d/m/Y H:i', strtotime($ordine['data_acquisto'])) ?></strong>
                 </p>
+                <p class="text-gray-500 text-sm mt-1">
+                  Codice recupero: <strong><?= clean($ordine['codice_recupero']) ?></strong>
+                </p>
               </div>
 
               <div class="md:text-right shrink-0">
                 <p class="text-sm uppercase tracking-widest text-gray-500 mb-1">Totale</p>
-                <p class="font-display text-3xl font-bold text-oro">
+                <p class="font-display text-3xl font-bold text-oro mb-4">
                   € <?= number_format((float)$ordine['importo_totale'], 2, ',', '.') ?>
                 </p>
+                <a href="<?= SITE_URL ?>/biglietti.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-outline inline-block px-5 py-2 rounded text-sm">
+                  Vedi biglietti
+                </a>
               </div>
             </div>
           </article>

@@ -8,7 +8,28 @@ define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 define('SITE_NAME', 'Museo Storico Severi');
-define('SITE_URL',  'http://localhost/museo');
+
+// URL del sito calcolata automaticamente.
+// Funziona sia in locale, per esempio http://localhost/museo,
+// sia su Altervista, per esempio https://nomeaccount.altervista.org/museo.
+if (!defined('SITE_URL')) {
+    $protocollo = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $cartella = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/')), '/');
+    define('SITE_URL', $protocollo . '://' . $host . ($cartella && $cartella !== '.' ? $cartella : ''));
+}
+
+define('SMTP_ACTIVE', true);
+
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_USERNAME', 'noreply.museostoricoseveri@gmail.com');
+define('SMTP_PASSWORD', 'bwdswhuwzrhhiduy');
+
+define('SMTP_PORT', 587);
+define('SMTP_SECURE', 'tls');
+
+define('MAIL_FROM', 'noreply.museostoricoseveri@gmail.com');
+define('MAIL_FROM_NAME', 'Museo Storico Severi');
 
 // Sessione sicura
 if (session_status() === PHP_SESSION_NONE) {

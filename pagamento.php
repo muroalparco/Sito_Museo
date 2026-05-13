@@ -1,0 +1,536 @@
+<?php
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/app_mailer.php';
+require_once __DIR__ . '/ordine_pdf.php';
+
+$pageTitle = 'Pagamento';
+$pdo = getDB();
+$errore = '';
+$ordine = null;
+$formPagamento = null;
+$bigliettiCreati = [];
+
+function generaCodiceOrdine(PDO $pdo): string {
+    do {
+        $codice = 'ORD-' . strtoupper(bin2hex(random_bytes(4)));
+        $stmt = $pdo->prepare('SELECT id_ordine FROM Ordini WHERE codice_recupero = ? LIMIT 1');
+        $stmt->execute([$codice]);
+    } while ($stmt->fetch());
+    return $codice;
+}
+
+function generaCodiceBiglietto(PDO $pdo): string {
+    do {
+        $codice = 'TKT-' . strtoupper(bin2hex(random_bytes(5)));
+        $stmt = $pdo->prepare('SELECT id_biglietto FROM Biglietti WHERE codice_univoco = ? LIMIT 1');
+        $stmt->execute([$codice]);
+    } while ($stmt->fetch());
+    return $codice;
+}
+
+function colonnaEsiste(PDO $pdo, string $tabella, string $colonna): bool {
+    try {
+        $stmt = $pdo->prepare("SHOW COLUMNS FROM `$tabella` LIKE ?");
+        $stmt->execute([$colonna]);
+        return (bool)$stmt->fetch();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function idCategoriaDocente(PDO $pdo): ?int {
+    try {
+        $stmt = $pdo->prepare("SELECT id_categoria FROM Categorie_Riduzione WHERE nome = 'Docente accompagnatore' LIMIT 1");
+        $stmt->execute();
+        $id = $stmt->fetchColumn();
+        return $id === false ? null : (int)$id;
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
+function normalizzaInputPagamento(array $input): array {
+    $dati = $input;
+    if (isset($dati['servizi']) && !is_array($dati['servizi'])) {
+        $dati['servizi'] = [$dati['servizi']];
+    }
+    if (!isset($dati['servizi'])) {
+        $dati['servizi'] = [];
+    }
+    return $dati;
+}
+
+function preparaOrdine(PDO $pdo, array $dati): array {
+    $tipo = $dati['tipo'] ?? '';
+    $nomeCliente = trim($dati['nome_cliente'] ?? '');
+    $emailCliente = trim($dati['email_cliente'] ?? '');
+    $idTariffa = (int)($dati['id_tariffa'] ?? 0);
+    $prenotazioneDocente = ($dati['prenotazione_docente'] ?? '') === '1';
+    $metodoPagamento = $dati['metodo_pagamento'] ?? 'carta';
+
+    if (!in_array($metodoPagamento, ['contanti', 'carta', 'paypal'], true)) {
+        throw new RuntimeException('Metodo di pagamento non valido.');
+    }
+
+    $quantitaRichiesta = (int)($dati['quantita'] ?? 1);
+    $quantitaStudenti = $prenotazioneDocente
+        ? max(1, (int)($dati['quantita_studenti'] ?? $quantitaRichiesta))
+        : max(1, min(20, $quantitaRichiesta));
+    $numeroDocenti = $prenotazioneDocente ? max(0, (int)($dati['numero_docenti'] ?? 0)) : 0;
+    $quantita = $prenotazioneDocente ? ($quantitaStudenti + $numeroDocenti) : $quantitaStudenti;
+
+    $nomeScuola = trim($dati['nome_scuola'] ?? '');
+    $codiceMeccanografico = strtoupper(trim($dati['codice_meccanografico'] ?? ''));
+    $indirizzoScuola = trim($dati['indirizzo_scuola'] ?? '');
+    $cittaScuola = trim($dati['citta_scuola'] ?? '');
+    $telefonoScuola = trim($dati['telefono_scuola'] ?? '');
+    $classeScuola = trim($dati['classe_scuola'] ?? '');
+    $noteScuola = trim($dati['note_scuola'] ?? '');
+
+    $serviziIds = array_values(array_unique(array_map('intval', $dati['servizi'] ?? [])));
+
+    if (!in_array($tipo, ['base', 'esposizione'], true)) {
+        throw new RuntimeException('Tipo biglietto non valido.');
+    }
+    if ($nomeCliente === '' || !filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) {
+        throw new RuntimeException('Inserisci nome, cognome ed email validi.');
+    }
+    if ($prenotazioneDocente && ($nomeScuola === '' || $cittaScuola === '' || $classeScuola === '')) {
+        throw new RuntimeException('Inserisci almeno nome scuola, città e classe/sezione.');
+    }
+    if ($idTariffa <= 0) {
+        throw new RuntimeException('Seleziona una tariffa valida.');
+    }
+
+    $stmtTariffa = $pdo->prepare(" 
+        SELECT t.*, cr.nome AS categoria, cr.percentuale_sconto
+        FROM Tariffe t
+        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria
+        WHERE t.id_tariffa = ? AND t.tipo_biglietto = ?
+        LIMIT 1
+    ");
+    $stmtTariffa->execute([$idTariffa, $tipo]);
+    $tariffa = $stmtTariffa->fetch();
+
+    if (!$tariffa) {
+        throw new RuntimeException('Tariffa non valida per il biglietto selezionato.');
+    }
+
+    $stmtPrezzoIntero = $pdo->prepare(" 
+        SELECT t.prezzo
+        FROM Tariffe t
+        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria
+        WHERE t.tipo_biglietto = ? AND cr.nome = 'Intero'
+        LIMIT 1
+    ");
+    $stmtPrezzoIntero->execute([$tipo]);
+    $prezzoIntero = $stmtPrezzoIntero->fetchColumn();
+    if ($prezzoIntero === false) {
+        $stmtMax = $pdo->prepare('SELECT MAX(prezzo) FROM Tariffe WHERE tipo_biglietto = ?');
+        $stmtMax->execute([$tipo]);
+        $prezzoIntero = $stmtMax->fetchColumn();
+    }
+
+    $prezzoLordo = (float)$prezzoIntero;
+    $prezzoFinale = (float)$tariffa['prezzo'];
+    $scontoApplicato = max(0, $prezzoLordo - $prezzoFinale);
+    $idCategoria = (int)$tariffa['id_categoria'];
+    $idCategoriaDocente = idCategoriaDocente($pdo);
+    $idFascia = null;
+    $dataValidita = null;
+    $titoloPercorso = 'Museo Storico Severi';
+
+    if ($tipo === 'esposizione') {
+        $idEsposizione = (int)($dati['id_esposizione'] ?? 0);
+        $idFascia = (int)($dati['id_fascia'] ?? 0);
+        if ($idEsposizione <= 0 || $idFascia <= 0) {
+            throw new RuntimeException('Seleziona una fascia oraria valida.');
+        }
+
+        $stmtFascia = $pdo->prepare(" 
+            SELECT f.*, e.titolo
+            FROM Fasce_Orarie f
+            JOIN Esposizioni e ON e.id_esposizione = f.id_esposizione
+            WHERE f.id_fascia = ? AND f.id_esposizione = ? AND e.stato = 'Pubblicata'
+            LIMIT 1
+        ");
+        $stmtFascia->execute([$idFascia, $idEsposizione]);
+        $fascia = $stmtFascia->fetch();
+        if (!$fascia) {
+            throw new RuntimeException('La fascia oraria selezionata non è disponibile.');
+        }
+
+        $stmtVenduti = $pdo->prepare("SELECT COUNT(*) FROM Biglietti WHERE id_fascia = ? AND stato <> 'Annullato'");
+        $stmtVenduti->execute([$idFascia]);
+        $venduti = (int)$stmtVenduti->fetchColumn();
+        $postiDisponibili = (int)$fascia['capienza_massima'] - $venduti;
+        if (!$prenotazioneDocente && $quantita > $postiDisponibili) {
+            throw new RuntimeException('Posti insufficienti nella fascia selezionata. Posti disponibili: ' . max(0, $postiDisponibili));
+        }
+        $dataValidita = $fascia['data'];
+        $titoloPercorso = $fascia['titolo'];
+    } else {
+        $dataValidita = $dati['data_visita'] ?? '';
+        if (!$dataValidita || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataValidita)) {
+            throw new RuntimeException('Seleziona una data visita valida.');
+        }
+    }
+
+    $servizi = [];
+    if (!empty($serviziIds)) {
+        $placeholders = implode(',', array_fill(0, count($serviziIds), '?'));
+        $stmtServizi = $pdo->prepare("SELECT id_servizio, nome, prezzo FROM Servizi_Opzionali WHERE id_servizio IN ($placeholders)");
+        $stmtServizi->execute($serviziIds);
+        $servizi = $stmtServizi->fetchAll();
+    }
+
+    $totaleServiziSingolo = array_reduce($servizi, fn($sum, $s) => $sum + (float)$s['prezzo'], 0.0);
+    $totaleStudenti = ($prezzoFinale + $totaleServiziSingolo) * $quantitaStudenti;
+    $totaleDocenti = $prenotazioneDocente ? ($totaleServiziSingolo * $numeroDocenti) : 0.0;
+    $totale = $totaleStudenti + $totaleDocenti;
+
+    return compact(
+        'tipo', 'nomeCliente', 'emailCliente', 'idTariffa', 'prenotazioneDocente', 'metodoPagamento',
+        'quantitaStudenti', 'numeroDocenti', 'quantita', 'nomeScuola', 'codiceMeccanografico',
+        'indirizzoScuola', 'cittaScuola', 'telefonoScuola', 'classeScuola', 'noteScuola',
+        'servizi', 'prezzoLordo', 'prezzoFinale', 'scontoApplicato', 'idCategoria', 'idCategoriaDocente',
+        'idFascia', 'dataValidita', 'totale', 'titoloPercorso'
+    );
+}
+
+function creaOrdineConBiglietti(PDO $pdo, array $datiOrdine, string $statoPagamento, string $statoBiglietto): array {
+    $codiceRecupero = generaCodiceOrdine($pdo);
+    $idUtente = isLogged() ? (int)$_SESSION['utente_id'] : null;
+
+    $pdo->beginTransaction();
+    try {
+        $campiOrdine = ['id_utente', 'codice_recupero', 'nome_cliente', 'email_cliente', 'importo_totale', 'stato_pagamento'];
+        $valoriOrdine = [$idUtente, $codiceRecupero, $datiOrdine['nomeCliente'], $datiOrdine['emailCliente'], $datiOrdine['totale'], $statoPagamento];
+
+        if (colonnaEsiste($pdo, 'Ordini', 'metodo_pagamento')) {
+            $campiOrdine[] = 'metodo_pagamento';
+            $valoriOrdine[] = $datiOrdine['metodoPagamento'];
+        }
+
+        $extraOrdine = [
+            'prenotazione_docente' => $datiOrdine['prenotazioneDocente'] ? 1 : 0,
+            'nome_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['nomeScuola'] : null,
+            'codice_meccanografico' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['codiceMeccanografico'] : null,
+            'indirizzo_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['indirizzoScuola'] : null,
+            'citta_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['cittaScuola'] : null,
+            'telefono_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['telefonoScuola'] : null,
+            'classe_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['classeScuola'] : null,
+            'quantita_studenti' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['quantitaStudenti'] : null,
+            'numero_docenti' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['numeroDocenti'] : null,
+            'note_scuola' => $datiOrdine['prenotazioneDocente'] ? $datiOrdine['noteScuola'] : null,
+        ];
+
+        foreach ($extraOrdine as $campo => $valore) {
+            if (colonnaEsiste($pdo, 'Ordini', $campo)) {
+                $campiOrdine[] = $campo;
+                $valoriOrdine[] = $valore;
+            }
+        }
+
+        $placeholdersOrdine = implode(',', array_fill(0, count($campiOrdine), '?'));
+        $sqlOrdine = 'INSERT INTO Ordini (' . implode(',', $campiOrdine) . ') VALUES (' . $placeholdersOrdine . ')';
+        $stmtOrdine = $pdo->prepare($sqlOrdine);
+        $stmtOrdine->execute($valoriOrdine);
+        $idOrdine = (int)$pdo->lastInsertId();
+
+        $stmtBiglietto = $pdo->prepare(" 
+            INSERT INTO Biglietti
+            (codice_univoco, id_ordine, tipo, data_validita, id_fascia, id_categoria, prezzo_lordo, sconto_applicato, stato)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmtBS = $pdo->prepare(" 
+            INSERT INTO Biglietti_Servizi (id_biglietto, id_servizio, prezzo_snapshot)
+            VALUES (?, ?, ?)
+        ");
+
+        $codici = [];
+        for ($i = 0; $i < $datiOrdine['quantitaStudenti']; $i++) {
+            $codiceBiglietto = generaCodiceBiglietto($pdo);
+            $stmtBiglietto->execute([
+                $codiceBiglietto,
+                $idOrdine,
+                $datiOrdine['tipo'],
+                $datiOrdine['dataValidita'],
+                $datiOrdine['idFascia'],
+                $datiOrdine['idCategoria'],
+                $datiOrdine['prezzoLordo'],
+                $datiOrdine['scontoApplicato'],
+                $statoBiglietto
+            ]);
+            $idBiglietto = (int)$pdo->lastInsertId();
+            foreach ($datiOrdine['servizi'] as $servizio) {
+                $stmtBS->execute([$idBiglietto, (int)$servizio['id_servizio'], (float)$servizio['prezzo']]);
+            }
+            $codici[] = $codiceBiglietto;
+        }
+
+        for ($i = 0; $i < $datiOrdine['numeroDocenti']; $i++) {
+            $codiceBiglietto = generaCodiceBiglietto($pdo);
+            $stmtBiglietto->execute([
+                $codiceBiglietto,
+                $idOrdine,
+                $datiOrdine['tipo'],
+                $datiOrdine['dataValidita'],
+                $datiOrdine['idFascia'],
+                $datiOrdine['idCategoriaDocente'],
+                0.00,
+                0.00,
+                $statoBiglietto
+            ]);
+            $idBiglietto = (int)$pdo->lastInsertId();
+            foreach ($datiOrdine['servizi'] as $servizio) {
+                $stmtBS->execute([$idBiglietto, (int)$servizio['id_servizio'], (float)$servizio['prezzo']]);
+            }
+            $codici[] = $codiceBiglietto;
+        }
+
+        $pdo->commit();
+
+        $ordine = [
+            'id_ordine' => $idOrdine,
+            'codice_recupero' => $codiceRecupero,
+            'nome_cliente' => $datiOrdine['nomeCliente'],
+            'email_cliente' => $datiOrdine['emailCliente'],
+            'importo_totale' => $datiOrdine['totale'],
+            'stato_pagamento' => $statoPagamento,
+            'metodo_pagamento' => $datiOrdine['metodoPagamento'],
+            'quantita' => $datiOrdine['quantita'],
+            'quantita_studenti' => $datiOrdine['quantitaStudenti'],
+            'numero_docenti' => $datiOrdine['numeroDocenti'],
+            'tipo' => $datiOrdine['tipo'],
+            'prenotazione_docente' => $datiOrdine['prenotazioneDocente'],
+            'nome_scuola' => $datiOrdine['nomeScuola'],
+            'classe_scuola' => $datiOrdine['classeScuola'],
+            'data_validita' => $datiOrdine['dataValidita'],
+            'titolo_percorso' => $datiOrdine['titoloPercorso'],
+            'servizi_descrizione' => implode(', ', array_map(fn($s) => $s['nome'] ?? '', $datiOrdine['servizi'])),
+        ];
+
+        $pdf = creaPdfOrdine($ordine, $codici);
+        inviaEmailConfermaOrdine($ordine, $codici, $pdf);
+
+        return ['ordine' => $ordine, 'codici' => $codici];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function creaPayloadPagamento(array $dati): string {
+    unset($dati['csrf_token']);
+    return base64_encode(json_encode($dati, JSON_UNESCAPED_UNICODE));
+}
+
+function leggiPayloadPagamento(string $payload): array {
+    $json = base64_decode($payload, true);
+    if ($json === false) {
+        throw new RuntimeException('Dati pagamento non validi.');
+    }
+    $dati = json_decode($json, true);
+    if (!is_array($dati)) {
+        throw new RuntimeException('Dati pagamento non validi.');
+    }
+    return normalizzaInputPagamento($dati);
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $errore = 'Richiesta non valida. Torna alla pagina esposizioni e avvia una nuova prenotazione.';
+} elseif (($_POST['conferma_pagamento'] ?? '') === '1') {
+    if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $errore = 'Token di sicurezza non valido. Riprova.';
+    } else {
+        try {
+            $dati = leggiPayloadPagamento($_POST['payload'] ?? '');
+            $datiOrdine = preparaOrdine($pdo, $dati);
+            $metodo = $datiOrdine['metodoPagamento'];
+
+            if ($metodo === 'carta') {
+                $numeroCarta = preg_replace('/\D+/', '', $_POST['numero_carta'] ?? '');
+                $titolare = trim($_POST['titolare'] ?? '');
+                $scadenza = trim($_POST['scadenza'] ?? '');
+                $cvv = preg_replace('/\D+/', '', $_POST['cvv'] ?? '');
+                if (strlen($numeroCarta) < 13 || $titolare === '' || !preg_match('/^\d{2}\/\d{2}$/', $scadenza) || strlen($cvv) < 3) {
+                    throw new RuntimeException('Completa correttamente i dati della carta.');
+                }
+            } elseif ($metodo === 'paypal') {
+                $paypalEmail = trim($_POST['paypal_email'] ?? '');
+                if (!filter_var($paypalEmail, FILTER_VALIDATE_EMAIL)) {
+                    throw new RuntimeException('Inserisci un indirizzo email PayPal valido.');
+                }
+            }
+
+            $result = creaOrdineConBiglietti($pdo, $datiOrdine, 'Pagato', 'Valido');
+            $ordine = $result['ordine'];
+            $bigliettiCreati = $result['codici'];
+        } catch (Throwable $e) {
+            $errore = $e->getMessage();
+        }
+    }
+} elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+    $errore = 'Token di sicurezza non valido. Riprova.';
+} else {
+    try {
+        $dati = normalizzaInputPagamento($_POST);
+        $datiOrdine = preparaOrdine($pdo, $dati);
+
+        if ($datiOrdine['metodoPagamento'] === 'contanti') {
+            $result = creaOrdineConBiglietti($pdo, $datiOrdine, 'Non pagato', 'Non pagato');
+            $ordine = $result['ordine'];
+            $bigliettiCreati = $result['codici'];
+        } else {
+            $formPagamento = [
+                'metodo' => $datiOrdine['metodoPagamento'],
+                'payload' => creaPayloadPagamento($dati),
+                'totale' => $datiOrdine['totale'],
+                'nome' => $datiOrdine['nomeCliente'],
+                'email' => $datiOrdine['emailCliente'],
+                'percorso' => $datiOrdine['titoloPercorso'],
+            ];
+        }
+    } catch (Throwable $e) {
+        $errore = $e->getMessage();
+    }
+}
+
+include __DIR__ . '/header.php';
+?>
+
+<div class="bg-avorio-dark border-b border-oro border-opacity-20 py-3">
+  <div class="max-w-7xl mx-auto px-4 text-sm text-gray-500 font-body">
+    <a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a>
+    <span class="mx-2 text-oro">›</span>
+    <span class="text-antracite">Pagamento</span>
+  </div>
+</div>
+
+<main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+  <?php if ($errore): ?>
+    <div class="bg-white rounded-2xl shadow border border-avorio-dark p-8 text-center">
+      <div class="text-5xl mb-4">⚠️</div>
+      <h1 class="font-display text-3xl font-bold text-antracite mb-4">Pagamento non completato</h1>
+      <div class="alert-error p-4 rounded text-sm mb-6 text-left">Errore: <?= clean($errore) ?></div>
+      <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline px-6 py-3 rounded inline-block">Torna alle esposizioni</a>
+    </div>
+
+  <?php elseif ($formPagamento): ?>
+    <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
+      <div class="bg-antracite px-8 py-8 text-center">
+        <div class="text-5xl mb-4"><?= $formPagamento['metodo'] === 'paypal' ? '🅿️' : '💳' ?></div>
+        <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Pagamento simulato</p>
+        <h1 class="font-display text-avorio text-3xl font-bold">
+          <?= $formPagamento['metodo'] === 'paypal' ? 'Accesso PayPal' : 'Dati carta di credito' ?>
+        </h1>
+      </div>
+
+      <div class="p-8 md:p-10">
+        <div class="bg-avorio rounded-xl p-5 mb-8 text-sm text-gray-600">
+          <p><strong>Acquirente:</strong> <?= clean($formPagamento['nome']) ?> · <?= clean($formPagamento['email']) ?></p>
+          <p><strong>Percorso:</strong> <?= clean($formPagamento['percorso']) ?></p>
+          <p><strong>Totale:</strong> € <?= number_format((float)$formPagamento['totale'], 2, ',', '.') ?></p>
+        </div>
+
+        <form method="POST" class="space-y-6">
+          <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+          <input type="hidden" name="conferma_pagamento" value="1">
+          <input type="hidden" name="payload" value="<?= clean($formPagamento['payload']) ?>">
+
+          <?php if ($formPagamento['metodo'] === 'carta'): ?>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Titolare carta</label>
+              <input type="text" name="titolare" required placeholder="Mario Rossi" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Numero carta</label>
+              <input type="text" name="numero_carta" required placeholder="4111 1111 1111 1111" maxlength="19" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-body font-bold text-antracite mb-1">Scadenza</label>
+                <input type="text" name="scadenza" required placeholder="MM/AA" maxlength="5" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              </div>
+              <div>
+                <label class="block text-sm font-body font-bold text-antracite mb-1">CVV</label>
+                <input type="text" name="cvv" required placeholder="123" maxlength="4" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              </div>
+            </div>
+          <?php else: ?>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Email PayPal</label>
+              <input type="email" name="paypal_email" required placeholder="nome@email.com" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+          <?php endif; ?>
+
+          <button type="submit" class="btn-oro w-full px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
+            Continua e completa pagamento
+          </button>
+        </form>
+      </div>
+    </section>
+
+  <?php elseif ($ordine): ?>
+    <?php $pagato = ($ordine['stato_pagamento'] === 'Pagato'); ?>
+    <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
+      <div class="bg-antracite px-8 py-8 text-center">
+        <div class="text-5xl mb-4"><?= $pagato ? '✅' : '💶' ?></div>
+        <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">
+          <?= $pagato ? 'Pagamento riuscito' : 'Pagamento in contanti da saldare' ?>
+        </p>
+        <h1 class="font-display text-avorio text-3xl font-bold">
+          <?= $pagato ? 'Ordine confermato' : 'Ordine emesso' ?>
+        </h1>
+      </div>
+      <div class="p-8 md:p-10 text-center">
+        <?php if (!$pagato): ?>
+          <div class="alert-error p-4 rounded text-sm mb-6 text-left">
+            I biglietti sono stati creati con stato <strong>Non pagato</strong>. Diventeranno validi solo dopo il pagamento in cassa.
+          </div>
+        <?php endif; ?>
+
+        <p class="text-gray-600 mb-4">Conserva questo codice: ti servirà per recuperare i biglietti anche senza login.</p>
+        <div class="inline-block bg-avorio border-2 border-dashed border-oro rounded-xl px-8 py-5 mb-6">
+          <div class="text-xs uppercase tracking-widest text-gray-500 font-body mb-1">Codice ordine</div>
+          <div class="font-display text-3xl text-antracite font-bold tracking-wide"><?= clean($ordine['codice_recupero']) ?></div>
+        </div>
+
+        <div class="grid sm:grid-cols-4 gap-4 mb-8 text-left">
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Biglietti</div>
+            <div class="font-bold text-antracite text-xl"><?= (int)$ordine['quantita'] ?></div>
+          </div>
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Metodo</div>
+            <div class="font-bold text-antracite text-xl"><?= clean(ucfirst($ordine['metodo_pagamento'])) ?></div>
+          </div>
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Stato</div>
+            <div class="font-bold text-antracite text-xl"><?= clean($ordine['stato_pagamento']) ?></div>
+          </div>
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Totale</div>
+            <div class="font-display text-oro font-bold text-xl">€ <?= number_format((float)$ordine['importo_totale'], 2, ',', '.') ?></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="<?= SITE_URL ?>/biglietti.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-oro px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
+            Vedi biglietti
+          </a>
+          <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
+            Torna alle esposizioni
+          </a>
+        </div>
+      </div>
+    </section>
+  <?php endif; ?>
+</main>
+
+<?php include __DIR__ . '/footer.php'; ?>

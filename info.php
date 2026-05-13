@@ -20,6 +20,9 @@ try {
     $servizi = [];
 }
 
+$tariffeBase = array_values(array_filter($tariffe, fn($t) => ($t['tipo_biglietto'] ?? '') === 'base'));
+$tariffeEsposizione = array_values(array_filter($tariffe, fn($t) => ($t['tipo_biglietto'] ?? '') === 'esposizione'));
+
 include __DIR__ . '/header.php';
 ?>
 
@@ -63,6 +66,7 @@ include __DIR__ . '/header.php';
       <div>
         <p class="text-oro text-xs uppercase tracking-widest font-body mb-1">Biglietteria</p>
         <h2 class="font-display text-3xl font-bold text-antracite">Tariffe disponibili</h2>
+        <p class="text-gray-500 text-sm mt-2">A sinistra trovi i prezzi per il solo ingresso al museo; a destra quelli per le esposizioni.</p>
       </div>
       <a href="<?= SITE_URL ?>/esposizioni.php" class="hidden sm:inline-block btn-outline px-5 py-2 rounded text-sm font-body">Vedi esposizioni</a>
     </div>
@@ -70,29 +74,68 @@ include __DIR__ . '/header.php';
     <?php if (empty($tariffe)): ?>
       <div class="bg-white rounded-xl shadow p-8 text-center text-gray-500">Tariffe non disponibili. Verifica la connessione al database.</div>
     <?php else: ?>
-      <div class="bg-white rounded-xl shadow overflow-hidden border border-avorio-dark">
-        <table class="w-full text-sm font-body">
-          <thead class="bg-antracite text-avorio">
-            <tr>
-              <th class="text-left px-5 py-4">Tipo</th>
-              <th class="text-left px-5 py-4">Categoria</th>
-              <th class="text-left px-5 py-4">Riduzione</th>
-              <th class="text-left px-5 py-4">Documento</th>
-              <th class="text-right px-5 py-4">Prezzo</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-avorio-dark">
-            <?php foreach ($tariffe as $t): ?>
-              <tr class="hover:bg-avorio transition-colors">
-                <td class="px-5 py-4 capitalize"><?= clean($t['tipo_biglietto']) ?></td>
-                <td class="px-5 py-4 font-bold text-antracite"><?= clean($t['categoria']) ?></td>
-                <td class="px-5 py-4 text-acciaio"><?= clean($t['percentuale_sconto']) ?>%</td>
-                <td class="px-5 py-4 text-gray-500"><?= clean($t['documento_richiesto'] ?? '—') ?></td>
-                <td class="px-5 py-4 text-right font-bold text-oro">€ <?= number_format((float)$t['prezzo'], 2, ',', '.') ?></td>
-              </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <article class="bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden">
+          <div class="bg-antracite px-6 py-5">
+            <p class="text-oro text-xs uppercase tracking-widest font-body mb-1">Ingresso</p>
+            <h3 class="font-display text-2xl text-avorio font-bold">Solo museo</h3>
+            <p class="text-gray-400 text-sm mt-2">Tariffe base valide per la visita ordinaria al museo.</p>
+          </div>
+
+          <div class="divide-y divide-avorio-dark">
+            <?php if (empty($tariffeBase)): ?>
+              <div class="p-6 text-gray-500 text-sm">Nessuna tariffa base disponibile.</div>
+            <?php else: ?>
+              <?php foreach ($tariffeBase as $t): ?>
+                <div class="p-6 flex items-start justify-between gap-4 hover:bg-avorio transition-colors">
+                  <div>
+                    <h4 class="font-display text-xl font-bold text-antracite"><?= clean($t['categoria']) ?></h4>
+                    <p class="text-sm text-gray-500 mt-1">Riduzione: <?= clean($t['percentuale_sconto']) ?>%</p>
+                    <?php if (!empty($t['documento_richiesto'])): ?>
+                      <p class="text-xs text-acciaio mt-1">Documento richiesto: <?= clean($t['documento_richiesto']) ?></p>
+                    <?php endif; ?>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="text-2xl font-bold text-oro">€ <?= number_format((float)$t['prezzo'], 2, ',', '.') ?></div>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+        </article>
+
+        <article class="bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden">
+          <div class="bg-antracite px-6 py-5">
+            <p class="text-oro text-xs uppercase tracking-widest font-body mb-1">Ingresso</p>
+            <h3 class="font-display text-2xl text-avorio font-bold">Esposizioni</h3>
+            <p class="text-gray-400 text-sm mt-2">Tariffe dedicate alla visita delle esposizioni temporanee.</p>
+          </div>
+
+          <div class="divide-y divide-avorio-dark">
+            <?php if (empty($tariffeEsposizione)): ?>
+              <div class="p-6 text-gray-500 text-sm">Nessuna tariffa esposizione disponibile.</div>
+            <?php else: ?>
+              <?php foreach ($tariffeEsposizione as $t): ?>
+                <div class="p-6 flex items-start justify-between gap-4 hover:bg-avorio transition-colors">
+                  <div>
+                    <h4 class="font-display text-xl font-bold text-antracite"><?= clean($t['categoria']) ?></h4>
+                    <p class="text-sm text-gray-500 mt-1">Riduzione: <?= clean($t['percentuale_sconto']) ?>%</p>
+                    <?php if (!empty($t['documento_richiesto'])): ?>
+                      <p class="text-xs text-acciaio mt-1">Documento richiesto: <?= clean($t['documento_richiesto']) ?></p>
+                    <?php endif; ?>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <div class="text-2xl font-bold text-oro">€ <?= number_format((float)$t['prezzo'], 2, ',', '.') ?></div>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+        </article>
+      </div>
+
+      <div class="mt-6 sm:hidden">
+        <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline inline-block px-5 py-2 rounded text-sm font-body">Vedi esposizioni</a>
       </div>
     <?php endif; ?>
   </section>

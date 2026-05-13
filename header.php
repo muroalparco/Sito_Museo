@@ -38,7 +38,7 @@ require_once __DIR__ . '/auth.php';
     }
   </script>
 
-<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css">
+<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=20">
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -67,24 +67,17 @@ require_once __DIR__ . '/auth.php';
           Home
         </a>
 
-        <!-- dropdown esposizioni -->
-        <div class="nav-dropdown relative">
-          <button class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors flex items-center gap-1">
-            Esposizioni
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div class="nav-menu absolute top-full left-0 w-44 bg-antracite-light rounded shadow-xl py-1 border-t-2 border-oro">
-            <a href="<?= SITE_URL ?>/esposizioni.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Tutte le mostre</a>
-            <a href="<?= SITE_URL ?>/esposizioni.php?stato=Pubblicata" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">In corso</a>
-          </div>
-        </div>
+        <a href="<?= SITE_URL ?>/esposizioni.php"
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'esposizioni.php') ? 'text-oro border-b border-oro' : '' ?>">
+          Esposizioni
+        </a>
 
         <a href="<?= SITE_URL ?>/novita.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'novita.php') ? 'text-oro border-b border-oro' : '' ?>">
           Novità
         </a>
         <a href="<?= SITE_URL ?>/info.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'info.php') ? 'text-oro border-b border-oro' : '' ?>">
           Info & Tariffe
         </a>
       </nav>
@@ -103,6 +96,15 @@ require_once __DIR__ . '/auth.php';
             <div class="nav-menu absolute top-full right-0 w-48 bg-antracite-light rounded shadow-xl py-1 border-t-2 border-oro">
               <a href="<?= SITE_URL ?>/account.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Il mio account</a>
               <a href="<?= SITE_URL ?>/ordini.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">I miei ordini</a>
+              <?php if (isAdmin()): ?>
+              <a href="<?= SITE_URL ?>/admin.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Vista amministratore</a>
+              <?php endif; ?>
+              <?php if (isOperatore()): ?>
+              <a href="<?= SITE_URL ?>/valida_biglietti.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Valida biglietti</a>
+              <?php endif; ?>
+              <?php if (isCassiere()): ?>
+              <a href="<?= SITE_URL ?>/cassa.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Cassa</a>
+              <?php endif; ?>
               <hr class="border-antracite my-1">
               <a href="<?= SITE_URL ?>/logout.php" class="block px-4 py-2 text-red-400 text-sm hover:bg-antracite transition-colors">Logout</a>
             </div>

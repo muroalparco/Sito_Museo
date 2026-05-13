@@ -1,34 +1,66 @@
 html { scroll-behavior: smooth; }
-    body { font-family: 'Lato', sans-serif; background-color: #F5F0E8; color: #2C2C2C; overflow-x: hidden; }
-    h1,h2,h3,h4 { font-family: 'Playfair Display', serif; }
+body { font-family: 'Lato', sans-serif; background-color: #F5F0E8; color: #2C2C2C; overflow-x: hidden; }
+h1,h2,h3,h4 { font-family: 'Playfair Display', serif; }
 
-    .nav-dropdown:hover .nav-menu { display: block; }
-    .nav-menu { display: none; }
+.oro-line { border-color: #C9A84C; }
 
-    .oro-line { border-color: #C9A84C; }
+.btn-oro {
+  background: #C9A84C !important;
+  color: #2C2C2C !important;
+  font-weight: 700;
+  transition: background .2s, transform .1s, opacity .2s;
+  text-decoration: none !important;
+}
+.btn-oro:hover  { background: #A8822A !important; }
+.btn-oro:active { transform: scale(.97); }
 
-    .btn-oro {
-      background: #C9A84C; color: #2C2C2C; font-weight: 700;
-      transition: background .2s, transform .1s, opacity .2s;
-    }
-    .btn-oro:hover  { background: #A8822A; }
-    .btn-oro:active { transform: scale(.97); }
+.btn-outline {
+  border: 2px solid #C9A84C !important;
+  color: #C9A84C !important;
+  background: transparent !important;
+  font-weight: 700;
+  transition: all .2s;
+  text-decoration: none !important;
+}
+.btn-outline:hover { background: #C9A84C !important; color: #2C2C2C !important; }
 
-    .btn-outline {
-      border: 2px solid #C9A84C; color: #C9A84C; font-weight: 700;
-      transition: all .2s;
-    }
-    .btn-outline:hover { background: #C9A84C; color: #2C2C2C; }
+.alert-error   { background:#fde8e8; border-left:4px solid #e53e3e; color:#7b2020; }
+.alert-success { background:#e6f4ea; border-left:4px solid #38a169; color:#1e5631; }
 
-    .alert-error   { background:#fde8e8; border-left:4px solid #e53e3e; color:#7b2020; }
-    .alert-success { background:#e6f4ea; border-left:4px solid #38a169; color:#1e5631; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.fade-up { animation: fadeUp .5s ease both; }
+.delay-1 { animation-delay:.1s; }
+.delay-2 { animation-delay:.2s; }
+.delay-3 { animation-delay:.3s; }
 
-    @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-    .fade-up { animation: fadeUp .5s ease both; }
-    .delay-1 { animation-delay:.1s; }
-    .delay-2 { animation-delay:.2s; }
-    .delay-3 { animation-delay:.3s; }
+/* Dropdown header: si apre solo quando il mouse è sul contenitore e si chiude all'uscita */
+.nav-dropdown { position: relative; }
+.nav-menu {
+  display: none !important;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 12rem;
+  background: #4A4A4A;
+  border-top: 2px solid #C9A84C;
+  border-radius: .25rem;
+  box-shadow: 0 18px 35px rgba(0,0,0,.25);
+  z-index: 9999;
+  overflow: hidden;
+}
+.nav-dropdown:hover > .nav-menu { display: block !important; }
+.nav-menu a { display: block; color: #F5F0E8 !important; text-decoration: none !important; }
+.nav-menu a:hover { background: #2C2C2C !important; color: #C9A84C !important; }
 
-    @media (max-width: 767px) {
-      .nav-dropdown:hover .nav-menu { display: none; }
-    }
+/* Pulsanti header */
+a[href$="login.php"].btn-outline,
+a[href$="registrazione.php"].btn-oro {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40px;
+}
+
+@media (max-width: 767px) {
+  .nav-dropdown:hover > .nav-menu { display: none !important; }
+}

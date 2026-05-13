@@ -6,9 +6,13 @@ require_once __DIR__ . '/auth.php';
 
 $pageTitle = 'Esposizioni';
 
-// Filtro per stato
-$stato  = in_array($_GET['stato'] ?? '', ['Bozza','Pubblicata','Conclusa','Annullata'])
-          ? $_GET['stato'] : null;
+$statiAmmessi = isAdmin()
+    ? ['Bozza','Pubblicata','Conclusa','Annullata']
+    : ['Pubblicata','Conclusa','Annullata'];
+
+// Filtro per stato: le bozze sono visibili solo agli amministratori
+$statoRichiesto = $_GET['stato'] ?? '';
+$stato = in_array($statoRichiesto, $statiAmmessi, true) ? $statoRichiesto : null;
 
 try {
     $pdo = getDB();
@@ -16,7 +20,12 @@ try {
         $stmt = $pdo->prepare("SELECT * FROM Esposizioni WHERE stato = ? ORDER BY data_inizio DESC");
         $stmt->execute([$stato]);
     } else {
-        $stmt = $pdo->query("SELECT * FROM Esposizioni ORDER BY FIELD(stato,'Pubblicata','Bozza','Conclusa','Annullata'), data_inizio DESC");
+        if (isAdmin()) {
+            $stmt = $pdo->query("SELECT * FROM Esposizioni ORDER BY FIELD(stato,'Pubblicata','Bozza','Conclusa','Annullata'), data_inizio DESC");
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM Esposizioni WHERE stato <> 'Bozza' ORDER BY FIELD(stato,'Pubblicata','Conclusa','Annullata'), data_inizio DESC");
+            $stmt->execute();
+        }
     }
     $esposizioni = $stmt->fetchAll();
 } catch (Exception $e) {
@@ -53,58 +62,140 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<!-- Filtri -->
+<!-- Filtri e recupero ordine -->
 <div class="bg-avorio-dark border-b border-oro border-opacity-20 py-4">
-  <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-3 items-center font-body text-sm">
-    <span class="text-antracite-light font-bold">Filtra per:</span>
-    <?php foreach ([null=>'Tutte', 'Pubblicata'=>'In corso', 'Conclusa'=>'Concluse'] as $val => $label): ?>
-    <a href="?<?= $val ? 'stato='.urlencode($val) : '' ?>"
-       class="px-4 py-1.5 rounded-full border transition-colors <?= ($stato === $val) ? 'bg-oro text-antracite border-oro font-bold' : 'border-gray-300 text-antracite hover:border-oro hover:text-oro' ?>">
-      <?= $label ?>
+  <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 font-body text-sm">
+    <div class="flex flex-wrap gap-3 items-center">
+      <span class="text-antracite-light font-bold">Filtra per:</span>
+      <?php
+        $filtri = [
+          ['val' => null, 'label' => 'Tutte'],
+          ['val' => 'Pubblicata', 'label' => 'In corso'],
+          ['val' => 'Conclusa', 'label' => 'Concluse'],
+        ];
+        if (isAdmin()) {
+          $filtri[] = ['val' => 'Bozza', 'label' => 'Bozze'];
+        }
+        foreach ($filtri as $f):
+          $val = $f['val'];
+          $isActive = ($stato === $val);
+      ?>
+      <a href="<?= $val ? '?stato='.urlencode((string)$val) : 'esposizioni.php' ?>"
+         class="px-4 py-1.5 rounded-full border transition-colors <?= $isActive ? 'bg-oro text-antracite border-oro font-bold' : 'border-gray-300 text-antracite hover:border-oro hover:text-oro' ?>">
+        <?= $f['label'] ?>
+      </a>
+      <?php endforeach; ?>
+    </div>
+    <a href="<?= SITE_URL ?>/recupera_ordine.php" class="btn-outline px-5 py-2 rounded text-center">
+      Vuoi recuperare il tuo ordine?
     </a>
-    <?php endforeach; ?>
   </div>
 </div>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+  <!-- Card grande: ingresso solo museo -->
+  <section class="mb-12">
+    <article class="bg-white rounded-2xl shadow-xl overflow-hidden border border-avorio-dark">
+      <div class="grid md:grid-cols-3">
+        <div class="bg-antracite text-avorio p-8 md:p-10 flex flex-col justify-center">
+          <div class="text-5xl mb-5">🏛️</div>
+          <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Ingresso singolo</p>
+          <h2 class="font-display text-3xl font-bold mb-3">Visita solo il museo</h2>
+          <p class="text-gray-300 text-sm leading-relaxed">Acquista un biglietto base per accedere alle sale permanenti del Museo Storico Severi, senza prenotare una esposizione specifica.</p>
+        </div>
+        <div class="md:col-span-2 p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div>
+            <h3 class="font-display text-2xl font-bold text-antracite mb-3">Biglietto Museo</h3>
+            <p class="text-gray-500 leading-relaxed max-w-2xl">Scegli la data della visita, la tariffa e gli eventuali servizi opzionali come audioguida, visita guidata o catalogo.</p>
+          </div>
+          <a href="<?= SITE_URL ?>/prenota.php?tipo=base" class="btn-oro px-7 py-3 rounded font-body text-sm uppercase tracking-wide text-center whitespace-nowrap">
+            Acquista ingresso
+          </a>
+        </div>
+      </div>
+    </article>
+  </section>
+
   <?php if (empty($esposizioni)): ?>
   <div class="text-center py-24">
     <div class="text-6xl mb-6">🏛️</div>
     <p class="text-gray-400 font-body">Nessuna esposizione trovata.</p>
   </div>
   <?php else: ?>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
     <?php foreach ($esposizioni as $esp): ?>
-    <article class="bg-white rounded-xl shadow hover:shadow-xl transition-all duration-300 overflow-hidden border border-avorio-dark group hover:-translate-y-1">
-      <div class="h-1.5 bg-oro"></div>
-      <div class="p-7">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <span class="text-4xl"><?= $icone[$i++ % count($icone)] ?></span>
-          <span class="text-xs px-2 py-1 rounded-full font-body font-bold <?= $statiLabel[$esp['stato']]['class'] ?>">
-            <?= $statiLabel[$esp['stato']]['text'] ?>
-          </span>
+    <?php
+      $icona = $icone[$i++ % count($icone)];
+      $dataInizio = strtotime($esp['data_inizio']);
+      $dataFine = strtotime($esp['data_fine']);
+      $meseInizio = strtoupper(date('M', $dataInizio));
+      $giornoInizio = date('d', $dataInizio);
+    ?>
+    <article class="relative bg-white rounded-[1.75rem] shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-avorio-dark group hover:-translate-y-2">
+      <div class="absolute top-0 left-0 right-0 h-28 bg-antracite overflow-hidden">
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 25% 20%, #C9A84C 0, transparent 22%), radial-gradient(circle at 75% 40%, #C9A84C 0, transparent 18%), repeating-linear-gradient(135deg, #C9A84C 0, #C9A84C 1px, transparent 0, transparent 38%); background-size: auto, auto, 22px 22px;"></div>
+      </div>
+
+      <div class="relative p-6 pt-7">
+        <div class="flex items-start justify-between gap-4 mb-7">
+          <div class="w-20 h-20 -mt-3 rounded-2xl bg-avorio border-4 border-white shadow-lg flex items-center justify-center text-4xl group-hover:scale-105 transition-transform duration-300">
+            <?= $icona ?>
+          </div>
+
+          <div class="text-right">
+            <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/95 shadow-sm text-[11px] font-body font-bold uppercase tracking-wide <?= $statiLabel[$esp['stato']]['class'] ?>">
+              <?= $statiLabel[$esp['stato']]['text'] ?>
+            </div>
+            <div class="mt-3 bg-oro text-antracite rounded-2xl shadow-md inline-flex flex-col items-center justify-center text-center min-w-[74px] h-[58px] px-3">
+              <div class="font-display text-2xl font-bold leading-none text-center"><?= $giornoInizio ?></div>
+              <div class="text-[10px] uppercase tracking-widest font-body font-bold text-center mt-1"><?= $meseInizio ?></div>
+            </div>
+          </div>
         </div>
-        <h2 class="font-display text-xl font-bold text-antracite group-hover:text-oro transition-colors mb-3">
-          <?= clean($esp['titolo']) ?>
-        </h2>
-        <p class="text-sm text-gray-500 leading-relaxed mb-5 line-clamp-3">
+
+        <div class="mb-5">
+          <p class="text-oro text-[11px] uppercase tracking-[0.22em] font-body mb-2">Percorso espositivo</p>
+          <h2 class="font-display text-2xl font-bold text-antracite group-hover:text-oro transition-colors leading-tight min-h-[3.5rem]">
+            <?= clean($esp['titolo']) ?>
+          </h2>
+        </div>
+
+        <p class="text-sm text-gray-500 leading-relaxed mb-6 line-clamp-4 min-h-[5.5rem]">
           <?= clean($esp['descrizione'] ?? 'Scopri questa affascinante esposizione al Museo Storico Severi.') ?>
         </p>
-        <div class="border-t border-avorio-dark pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="text-xs text-acciaio font-body">
-            <div><?= date('d/m/Y', strtotime($esp['data_inizio'])) ?></div>
-            <div>→ <?= date('d/m/Y', strtotime($esp['data_fine'])) ?></div>
+
+        <div class="bg-avorio rounded-2xl border border-avorio-dark p-4 mb-6">
+          <div class="flex items-center justify-between gap-3 text-xs font-body text-antracite">
+            <div>
+              <div class="text-gray-400 uppercase tracking-widest mb-1">Dal</div>
+              <div class="font-bold"><?= date('d/m/Y', $dataInizio) ?></div>
+            </div>
+            <div class="h-px flex-1 bg-oro/40"></div>
+            <div class="text-right">
+              <div class="text-gray-400 uppercase tracking-widest mb-1">Al</div>
+              <div class="font-bold"><?= date('d/m/Y', $dataFine) ?></div>
+            </div>
           </div>
+        </div>
+
+        <div class="relative border-t border-dashed border-oro/50 pt-5 flex items-center justify-between gap-4">
+          <span class="absolute -top-3 -left-9 w-6 h-6 rounded-full bg-avorio"></span>
+          <span class="absolute -top-3 -right-9 w-6 h-6 rounded-full bg-avorio"></span>
+
+          <div class="text-xs text-acciaio font-body">
+            <span class="block uppercase tracking-widest text-gray-400">Biglietto mostra</span>
+            <span class="font-bold text-antracite">Museo Storico Severi</span>
+          </div>
+
           <?php if ($esp['stato'] === 'Pubblicata'): ?>
-          <a href="esposizione.php?id=<?= (int)$esp['id_esposizione'] ?>"
-             class="btn-oro px-4 py-2 rounded text-xs font-body uppercase tracking-wide">
+          <a href="prenota.php?id=<?= (int)$esp['id_esposizione'] ?>"
+             class="btn-oro px-5 py-2.5 rounded-full text-xs font-body uppercase tracking-wide text-center whitespace-nowrap shadow-md hover:shadow-lg">
             Prenota
           </a>
           <?php else: ?>
-          <a href="esposizione.php?id=<?= (int)$esp['id_esposizione'] ?>"
-             class="btn-outline px-4 py-2 rounded text-xs font-body uppercase tracking-wide">
-            Dettagli
-          </a>
+          <span class="btn-outline px-5 py-2.5 rounded-full text-xs font-body uppercase tracking-wide text-center opacity-60 cursor-not-allowed whitespace-nowrap">
+            Non prenotabile
+          </span>
           <?php endif; ?>
         </div>
       </div>

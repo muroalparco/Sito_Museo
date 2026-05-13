@@ -1,3 +1,8 @@
+<style>
+  @media print {
+    .footer-link-rapidi { display: none !important; }
+  }
+</style>
 <!-- footer -->
 <footer class="bg-antracite text-avorio mt-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -9,7 +14,7 @@
           <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain">
           <div>
             <div class="font-display text-oro font-semibold">Museo Storico Severi</div>
-            <div class="text-xs text-gray-400 tracking-widest uppercase">Dal 1987</div>
+            <div class="text-xs text-gray-400 tracking-widest uppercase">Dal 2020</div>
           </div>
         </div>
         <p class="text-sm text-gray-400 leading-relaxed">
@@ -18,7 +23,7 @@
       </div>
 
       <!-- colonna 2 link -->
-      <div>
+      <div class="footer-link-rapidi print:hidden">
         <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h4>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a></li>
@@ -34,7 +39,7 @@
         <ul class="space-y-2 text-sm text-gray-400">
           <li class="flex items-start gap-2">
             <svg class="w-4 h-4 mt-0.5 text-oro flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-            Via della Storia 12, 00100 Roma
+            Via Luigi Pettinati 46, 35128 Padova
           </li>
           <li class="flex items-center gap-2">
             <svg class="w-4 h-4 text-oro flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>

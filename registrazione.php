@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if ($result['success']) {
-                header('Location: ' . SITE_URL . '/login.php?registered=1');
+                header('Location: ' . SITE_URL . '/verifica_email.php?email=' . urlencode($result['email'] ?? $email));
                 exit;
             }
 

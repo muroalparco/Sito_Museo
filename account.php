@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'amministratore' => 'Amministratore'];
+$ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'cassiere' => 'Cassiere', 'amministratore' => 'Amministratore'];
 
 include __DIR__ . '/header.php';
 ?>

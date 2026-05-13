@@ -6,9 +6,16 @@ require_once __DIR__ . '/auth.php';
 
 $pageTitle = 'Benvenuti';
 
-// Ultime esposizioni pubblicate
+$esposizioni = [];
+$statistiche = [
+    'esposizioni_attive' => 0,
+    'servizi_extra'      => 0,
+];
+
 try {
-    $pdo  = getDB();
+    $pdo = getDB();
+
+    // Ultime esposizioni pubblicate
     $stmt = $pdo->query(
         "SELECT id_esposizione, titolo, descrizione, data_inizio, data_fine
          FROM Esposizioni
@@ -17,6 +24,20 @@ try {
          LIMIT 4"
     );
     $esposizioni = $stmt->fetchAll();
+
+    // Numeri dinamici mostrati nella fascia statistiche della home.
+    // Le esposizioni attive sono quelle pubblicate, cioè visibili agli utenti.
+    $stmtStats = $pdo->query(
+        "SELECT
+            (SELECT COUNT(*) FROM Esposizioni WHERE stato = 'Pubblicata') AS esposizioni_attive,
+            (SELECT COUNT(*) FROM Servizi_Opzionali) AS servizi_extra"
+    );
+    $rowStats = $stmtStats->fetch();
+
+    if ($rowStats) {
+        $statistiche['esposizioni_attive'] = (int) $rowStats['esposizioni_attive'];
+        $statistiche['servizi_extra']      = (int) $rowStats['servizi_extra'];
+    }
 } catch (Exception $e) {
     $esposizioni = [];
 }
@@ -50,7 +71,7 @@ include __DIR__ . '/header.php';
         <p class="fade-up delay-2 text-gray-300 font-body text-base sm:text-lg leading-relaxed mb-8 sm:mb-10 max-w-md">
           Dalle grandi civiltà dell'antichità al Rinascimento italiano, scopri secoli di arte, cultura e innovazione nelle nostre mostre permanenti e temporanee.
         </p>
-        <div class="fade-up delay-3 flex flex-col sm:flex-row gap-4">
+        <div class="fade-up delay-3 flex flex-col sm:flex-row gap-4 text-center">
           <a href="esposizioni.php"
              class="btn-oro px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-block text-center">
             Scopri le mostre
@@ -59,6 +80,24 @@ include __DIR__ . '/header.php';
              class="btn-outline px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-block text-center">
             Biglietti & Info
           </a>
+          <?php if (isAdmin()): ?>
+          <a href="admin.php"
+             class="bg-white text-antracite px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-flex items-center justify-center text-center font-bold hover:bg-avorio transition-colors">
+            Vista amministratore
+          </a>
+          <?php endif; ?>
+          <?php if (isOperatore() && !isAdmin()): ?>
+          <a href="valida_biglietti.php"
+             class="bg-oro text-antracite px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-flex items-center justify-center text-center font-bold hover:bg-oro-dark transition-colors">
+            Valida biglietti
+          </a>
+          <?php endif; ?>
+          <?php if (isCassiere()): ?>
+          <a href="cassa.php"
+             class="bg-oro text-antracite px-8 py-3 rounded font-body text-sm uppercase tracking-wide inline-flex items-center justify-center text-center font-bold hover:bg-oro-dark transition-colors">
+            Cassa
+          </a>
+          <?php endif; ?>
         </div>
       </div>
 
@@ -88,14 +127,14 @@ include __DIR__ . '/header.php';
 <section class="bg-avorio-dark py-8 border-y border-oro border-opacity-30">
   <div class="max-w-5xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
     <?php foreach ([
-      ['5','Esposizioni attive'],
-      ['10.000+','Visitatori l\'anno'],
-      ['3','Servizi extra'],
-      ['2026','Anno di fondazione'],
+      [$statistiche['esposizioni_attive'], 'Esposizioni attive'],
+      ['10.000+', 'Visitatori l\'anno'],
+      [$statistiche['servizi_extra'], 'Servizi extra'],
+      ['2020', 'Anno di fondazione'],
     ] as $s): ?>
     <div>
-      <div class="font-display text-3xl font-bold text-oro"><?= $s[0] ?></div>
-      <div class="font-body text-xs text-antracite-light uppercase tracking-wide mt-1"><?= $s[1] ?></div>
+      <div class="font-display text-3xl font-bold text-oro"><?= clean((string) $s[0]) ?></div>
+      <div class="font-body text-xs text-antracite-light uppercase tracking-wide mt-1"><?= clean($s[1]) ?></div>
     </div>
     <?php endforeach; ?>
   </div>
@@ -130,9 +169,9 @@ include __DIR__ . '/header.php';
           <?= date('d/m/Y', strtotime($esp['data_inizio'])) ?> →
           <?= date('d/m/Y', strtotime($esp['data_fine'])) ?>
         </div>
-        <a href="esposizione.php?id=<?= (int)$esp['id_esposizione'] ?>"
+        <a href="prenota.php?id=<?= (int)$esp['id_esposizione'] ?>"
            class="text-oro text-xs font-bold uppercase tracking-wide hover:underline">
-          Scopri di più →
+          Prenota →
         </a>
       </div>
     </article>
@@ -148,7 +187,7 @@ include __DIR__ . '/header.php';
   <?php endif; ?>
 </section>
 
-<!-- inforamzioni di contatto e cazzate simili -->
+<!-- informazioni di contatto e percorso visita -->
 <section class="bg-antracite py-14 sm:py-20">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="text-center mb-12">
@@ -165,29 +204,22 @@ include __DIR__ . '/header.php';
       ] as $step): ?>
       <div class="text-center">
         <div class="text-4xl mb-4"><?= $step[0] ?></div>
-        <h3 class="font-display text-oro text-xl mb-3"><?= $step[1] ?></h3>
-        <p class="text-gray-400 font-body text-sm leading-relaxed"><?= $step[2] ?></p>
+        <h3 class="font-display text-oro text-xl mb-3"><?= clean($step[1]) ?></h3>
+        <p class="text-gray-400 font-body text-sm leading-relaxed"><?= clean($step[2]) ?></p>
       </div>
       <?php endforeach; ?>
     </div>
 
     <div class="text-center mt-12">
-      <?php if (!isLogged()): ?>
-      <a href="registrazione.php"
-         class="btn-oro px-10 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
-        Registrati e prenota
-      </a>
-      <?php else: ?>
       <a href="esposizioni.php"
          class="btn-oro px-10 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">
         Prenota ora
       </a>
-      <?php endif; ?>
     </div>
   </div>
 </section>
 
-<!-- ═citazione di giulio cesare (boh chat diceva che ci stava metterla, mi fido) -->
+<!-- citazione -->
 <section class="py-16 bg-avorio">
   <div class="max-w-3xl mx-auto text-center px-4">
     <div class="text-oro text-5xl font-display leading-none mb-4">"</div>
