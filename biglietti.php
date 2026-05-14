@@ -50,13 +50,6 @@ include __DIR__ . '/header.php';
     .no-pdf, .pdf-only-message { display: none !important; }
   }
 
-  .pdf-exporting .no-pdf {
-    display: none !important;
-  }
-
-  .pdf-exporting #biglietti-pdf-area {
-    background: #F5F0E8;
-  }
 
   .ticket-card {
     break-inside: avoid;
@@ -81,24 +74,6 @@ include __DIR__ . '/header.php';
     }
   }
 
-  .pdf-exporting .ticket-pages {
-    display: block;
-  }
-
-  .pdf-exporting .ticket-page {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 1.5rem !important;
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  .pdf-exporting .pdf-page-break {
-    display: block;
-    height: 0;
-    page-break-after: always;
-    break-after: page;
-  }
 </style>
 
 <div class="bg-avorio-dark border-b border-oro border-opacity-20 py-3 print:hidden no-pdf">
@@ -154,7 +129,7 @@ include __DIR__ . '/header.php';
           <p class="font-display text-3xl font-bold text-oro">€ <?= number_format((float)$ordine['importo_totale'], 2, ',', '.') ?></p>
           <div class="mt-3 flex flex-wrap gap-2 md:justify-end print:hidden no-pdf">
             <button type="button" onclick="window.print()" class="btn-outline px-5 py-2 rounded text-sm">Stampa</button>
-            <button type="button" id="btn-scarica-pdf" onclick="scaricaPdfBiglietti()" class="btn-oro px-5 py-2 rounded text-sm inline-block">Scarica PDF</button>
+            <a href="<?= SITE_URL ?>/scarica_pdf.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-oro px-5 py-2 rounded text-sm inline-block">Scarica PDF</a>
           </div>
         </div>
       </div>
@@ -213,74 +188,5 @@ include __DIR__ . '/header.php';
   <?php endif; ?>
 </main>
 
-
-<?php if (!$errore && $ordine): ?>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script>
-    async function scaricaPdfBiglietti() {
-      const area = document.getElementById('biglietti-pdf-area');
-      const btn = document.getElementById('btn-scarica-pdf');
-      if (!area) return;
-
-      if (!window.html2pdf) {
-        alert('Non riesco a generare il PDF perché la libreria PDF non è stata caricata. Controlla la connessione Internet e riprova.');
-        return;
-      }
-
-      const testoOriginale = btn ? btn.innerHTML : '';
-
-      try {
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = 'Creo il PDF...';
-          btn.style.opacity = '0.75';
-          btn.style.cursor = 'wait';
-        }
-
-        document.body.classList.add('pdf-exporting');
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        const opzioni = {
-          margin: [8, 8, 8, 8],
-          filename: '<?= clean($pdfFilename) ?>',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            allowTaint: true,
-            backgroundColor: '#F5F0E8',
-            logging: false,
-            scrollX: 0,
-            scrollY: 0
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: {
-            mode: ['css', 'legacy'],
-            avoid: ['.ticket-card', '.break-inside-avoid']
-          }
-        };
-
-        await html2pdf().set(opzioni).from(area).save();
-      } catch (errore) {
-        console.error('Errore generazione PDF:', errore);
-        alert('Non sono riuscito a generare il PDF. Riprova tra qualche secondo.');
-      } finally {
-        document.body.classList.remove('pdf-exporting');
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = testoOriginale;
-          btn.style.opacity = '';
-          btn.style.cursor = '';
-        }
-      }
-    }
-
-    <?php if (!empty($autoScaricaPdf)): ?>
-    window.addEventListener('load', function () {
-      setTimeout(scaricaPdfBiglietti, 600);
-    });
-    <?php endif; ?>
-  </script>
-<?php endif; ?>
 
 <?php include __DIR__ . '/footer.php'; ?>

@@ -1,22 +1,27 @@
 <?php
+
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
+// già loggato → redirect home
 if (isLogged()) {
     header('Location: ' . SITE_URL . '/index.php');
     exit;
 }
 
 $pageTitle = 'Accedi';
-$error = '';
-$success = $_GET['registered'] ?? false;
-$verified = $_GET['verified'] ?? false;
+$error     = '';
+$registered = $_GET['registered'] ?? '';
+$verified = ($_GET['verified'] ?? '') === '1';
+$mailStatus = $_GET['mail'] ?? '';
+$emailRegistrata = trim($_GET['email'] ?? '');
 
+// Gestione POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $error = 'Token di sicurezza non valido. Riprova.';
     } else {
-        $email = trim($_POST['email'] ?? '');
+        $email    = trim($_POST['email']    ?? '');
         $password = trim($_POST['password'] ?? '');
 
         if (!$email || !$password) {
@@ -25,22 +30,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Formato email non valido.';
         } else {
             $result = loginUtente($email, $password);
-
             if ($result['success']) {
-                $redirect = match ($result['ruolo']) {
-                    'amministratore', 'operatore' => SITE_URL . '/account.php',
-                    default => SITE_URL . '/index.php',
+                $redirect = match($result['ruolo']) {
+                    'amministratore' => SITE_URL . '/account.php',
+                    'operatore'      => SITE_URL . '/account.php',
+                    'cassiere'       => SITE_URL . '/account.php',
+                    'tester'         => SITE_URL . '/account.php',
+                    default          => SITE_URL . '/index.php',
                 };
                 header('Location: ' . $redirect);
                 exit;
-            }
-
-            if (!empty($result['verification_required']) && !empty($result['email'])) {
-                header('Location: ' . SITE_URL . '/verifica_email.php?email=' . urlencode($result['email']) . '&from=login');
+            } elseif (!empty($result['verification_required'])) {
+                header('Location: ' . SITE_URL . '/verifica_email.php?email=' . urlencode($result['email'] ?? $email) . '&from=login');
                 exit;
+            } else {
+                $error = $result['message'];
             }
-
-            $error = $result['message'] ?? 'Accesso non riuscito.';
         }
     }
 }
@@ -48,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include __DIR__ . '/header.php';
 ?>
 
+<!-- Breadcrumb -->
 <div class="bg-avorio-dark border-b border-oro border-opacity-20 py-3">
   <div class="max-w-7xl mx-auto px-4 text-sm text-gray-500 font-body">
     <a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a>
@@ -56,37 +62,57 @@ include __DIR__ . '/header.php';
   </div>
 </div>
 
+<!-- form di login-->
 <main class="flex-1 flex items-center justify-center py-10 sm:py-16 px-4">
   <div class="w-full max-w-md fade-up">
+
+    <!-- card -->
     <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-avorio-dark">
+
+      <!-- header card -->
       <div class="bg-antracite px-5 sm:px-8 py-6 sm:py-8 text-center">
-        <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="w-16 h-16 object-contain mx-auto mb-4">
+        <img 
+          src="<?= SITE_URL ?>/img/logo.png" 
+          alt="Logo Museo Storico Severi" 
+          class="w-16 h-16 object-contain mx-auto mb-4"
+        >
         <h1 class="font-display text-avorio text-xl sm:text-2xl font-bold">Accedi al Museo</h1>
         <p class="text-gray-400 text-sm font-body mt-1">Inserisci le tue credenziali</p>
       </div>
 
+      <!-- form body -->
       <div class="px-5 sm:px-8 py-6 sm:py-8">
-        <?php if ($success): ?>
-          <div class="alert-success p-4 rounded mb-6 text-sm font-body">
-            ✅ Registrazione completata. Controlla la tua email e verifica l'account prima di accedere.
-          </div>
-        <?php endif; ?>
 
         <?php if ($verified): ?>
-          <div class="alert-success p-4 rounded mb-6 text-sm font-body">
-            ✅ Email verificata correttamente. Ora puoi accedere.
-          </div>
+        <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body leading-relaxed" role="status">
+          ✅ Email verificata correttamente. Ora puoi effettuare il login.
+        </div>
+        <?php elseif ($registered === 'verify'): ?>
+        <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body leading-relaxed" role="status">
+          ✅ Registrazione completata. Prima di accedere devi confermare l’account con il codice ricevuto via email.
+          <?php if ($mailStatus === 'failed'): ?>
+            <br><strong>Nota:</strong> la mail potrebbe non essere partita. Puoi rigenerare un nuovo codice dalla pagina di verifica.
+          <?php endif; ?>
+          <?php if ($emailRegistrata): ?>
+            <br><a class="underline font-bold" href="<?= SITE_URL ?>/verifica_email.php?email=<?= urlencode($emailRegistrata) ?>">Vai alla verifica email</a>
+          <?php endif; ?>
+        </div>
+        <?php elseif ($registered): ?>
+        <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body" role="status">
+          ✅ Registrazione completata. Controlla la tua email per verificare l’account.
+        </div>
         <?php endif; ?>
 
         <?php if ($error): ?>
-          <div class="alert-error p-4 rounded mb-6 text-sm font-body">
-            ⚠️ <?= clean($error) ?>
-          </div>
+        <div class="alert-error floating-alert p-4 rounded mb-6 text-sm font-body" role="alert">
+          ⚠️ <?= clean($error) ?>
+        </div>
         <?php endif; ?>
 
         <form method="POST" novalidate>
           <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
 
+          <!-- email -->
           <div class="mb-5">
             <label for="email" class="block text-sm font-body font-bold text-antracite mb-1">
               Email <span class="text-red-400">*</span>
@@ -101,16 +127,17 @@ include __DIR__ . '/header.php';
                      value="<?= clean($_POST['email'] ?? '') ?>"
                      required autocomplete="email"
                      placeholder="nome@esempio.it"
-                     class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro transition-colors">
+                     class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro transition-colors" />
             </div>
           </div>
 
+          <!-- password -->
           <div class="mb-6">
             <div class="flex justify-between items-center mb-1">
               <label for="password" class="block text-sm font-body font-bold text-antracite">
                 Password <span class="text-red-400">*</span>
               </label>
-              <a href="<?= SITE_URL ?>/recupero_password.php" class="text-xs text-acciaio hover:text-oro transition-colors font-body">
+              <a href="recupero_password.php" class="text-xs text-acciaio hover:text-oro transition-colors font-body">
                 Password dimenticata?
               </a>
             </div>
@@ -123,8 +150,9 @@ include __DIR__ . '/header.php';
               <input type="password" id="password" name="password"
                      required autocomplete="current-password"
                      placeholder="••••••••"
-                     class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro transition-colors">
-              <button type="button"
+                     class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro transition-colors" />
+              <!-- Toggle visibilità password -->
+              <button type="button" id="togglePw"
                       class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-oro transition-colors"
                       onclick="document.getElementById('password').type = document.getElementById('password').type === 'password' ? 'text' : 'password'">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,26 +163,38 @@ include __DIR__ . '/header.php';
             </div>
           </div>
 
-          <button type="submit" class="btn-oro w-full py-3 rounded-lg font-body text-sm uppercase tracking-widest">
+          <!-- invia -->
+          <button type="submit"
+                  class="btn-oro w-full py-3 rounded-lg font-body text-sm uppercase tracking-widest">
             Accedi
           </button>
         </form>
 
+        <!-- divisore -->
         <div class="relative my-6">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-          <div class="relative flex justify-center"><span class="bg-white px-4 text-xs text-gray-400 font-body">oppure</span></div>
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-200"></div>
+          </div>
+          <div class="relative flex justify-center">
+            <span class="bg-white px-4 text-xs text-gray-400 font-body">oppure</span>
+          </div>
         </div>
 
+        <!-- link per registrazione -->
         <p class="text-center text-sm font-body text-gray-500">
           Non hai un account?
-          <a href="<?= SITE_URL ?>/registrazione.php" class="text-oro font-bold hover:underline">Registrati gratuitamente</a>
+          <a href="registrazione.php" class="text-oro font-bold hover:underline">Registrati gratuitamente</a>
         </p>
+
       </div>
     </div>
 
+    <!-- se non vuoi loggare -->
     <p class="text-center text-xs text-gray-400 mt-4 font-body">
       Puoi anche
-      <a href="<?= SITE_URL ?>/esposizioni.php" class="text-acciaio hover:text-oro transition-colors">esplorare le mostre</a>
+      <a href="<?= SITE_URL ?>/esposizioni.php" class="text-acciaio hover:text-oro transition-colors">
+        esplorare le mostre
+      </a>
       senza registrarti.
     </p>
   </div>

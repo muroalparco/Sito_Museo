@@ -14,7 +14,7 @@ $errors    = [];
 
 $domandeSicurezza = [
     'primo_animale'      => 'Nome del primo animale domestico',
-    'citta_nascita'      => 'Città in cui sei nato/a',
+    'citta_nascita'      => 'Città che vorresti visitare',
     'scuola_elementare'  => 'Nome della scuola elementare',
     'colore_preferito'   => 'Colore preferito'
 ];
@@ -30,7 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $confirm             = trim($_POST['confirm'] ?? '');
         $domanda_sicurezza   = trim($_POST['domanda_sicurezza'] ?? '');
         $risposta_sicurezza  = trim($_POST['risposta_sicurezza'] ?? '');
-        $terms               = isset($_POST['terms']);
 
         if (!$nome) {
             $errors['nome'] = 'Il nome è obbligatorio.';
@@ -60,10 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors['risposta_sicurezza'] = 'Inserisci la risposta di sicurezza.';
         }
 
-        if (!$terms) {
-            $errors['terms'] = 'Devi accettare i termini di servizio.';
-        }
-
         if (empty($errors)) {
             $result = registraUtente(
                 $nome,
@@ -75,7 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if ($result['success']) {
-                header('Location: ' . SITE_URL . '/verifica_email.php?email=' . urlencode($result['email'] ?? $email));
+                $mailParam = !empty($result['email_sent']) ? 'sent' : 'failed';
+                header('Location: ' . SITE_URL . '/verifica_email.php?registered=1&email=' . urlencode($email) . '&mail=' . $mailParam);
                 exit;
             }
 
@@ -118,7 +114,7 @@ include __DIR__ . '/header.php';
             <div class="px-8 py-8">
 
                 <?php if ($error): ?>
-                    <div class="alert-error p-4 rounded mb-6 text-sm font-body">
+                    <div class="alert-error floating-alert p-4 rounded mb-6 text-sm font-body" role="alert">
                         ⚠️ <?= clean($error) ?>
                     </div>
                 <?php endif; ?>
@@ -187,16 +183,27 @@ include __DIR__ . '/header.php';
                         <label for="password" class="block text-sm font-body font-bold text-antracite mb-1">
                             Password <span class="text-red-400">*</span>
                         </label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            required
-                            autocomplete="new-password"
-                            placeholder="Almeno 8 caratteri"
-                            class="w-full px-4 py-3 border rounded-lg font-body text-sm focus:outline-none transition-colors <?= fieldClass('password', $errors) ?>"
-                            oninput="checkStrength(this.value)"
-                        >
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                                autocomplete="new-password"
+                                placeholder="Almeno 8 caratteri"
+                                class="w-full px-4 py-3 pr-14 border rounded-lg font-body text-sm focus:outline-none transition-colors <?= fieldClass('password', $errors) ?>"
+                                oninput="checkStrength(this.value)"
+                            >
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-0 px-4 text-gray-400 hover:text-oro focus:outline-none"
+                                onclick="togglePasswordVisibility('password', this)"
+                                aria-label="Mostra password"
+                                title="Mostra password"
+                            >
+                                👁️
+                            </button>
+                        </div>
                         <div class="h-1 w-full bg-gray-200 rounded mt-2">
                             <div id="strengthBar" class="h-1 rounded transition-all duration-300" style="width:0%"></div>
                         </div>
@@ -210,15 +217,26 @@ include __DIR__ . '/header.php';
                         <label for="confirm" class="block text-sm font-body font-bold text-antracite mb-1">
                             Conferma password <span class="text-red-400">*</span>
                         </label>
-                        <input
-                            type="password"
-                            id="confirm"
-                            name="confirm"
-                            required
-                            autocomplete="new-password"
-                            placeholder="Ripeti la password"
-                            class="w-full px-4 py-3 border rounded-lg font-body text-sm focus:outline-none transition-colors <?= fieldClass('confirm', $errors) ?>"
-                        >
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="confirm"
+                                name="confirm"
+                                required
+                                autocomplete="new-password"
+                                placeholder="Ripeti la password"
+                                class="w-full px-4 py-3 pr-14 border rounded-lg font-body text-sm focus:outline-none transition-colors <?= fieldClass('confirm', $errors) ?>"
+                            >
+                            <button
+                                type="button"
+                                class="absolute inset-y-0 right-0 px-4 text-gray-400 hover:text-oro focus:outline-none"
+                                onclick="togglePasswordVisibility('confirm', this)"
+                                aria-label="Mostra conferma password"
+                                title="Mostra conferma password"
+                            >
+                                👁️
+                            </button>
+                        </div>
                         <?php if (isset($errors['confirm'])): ?>
                             <p class="text-red-500 text-xs mt-1"><?= clean($errors['confirm']) ?></p>
                         <?php endif; ?>
@@ -264,28 +282,6 @@ include __DIR__ . '/header.php';
                         <?php endif; ?>
                     </div>
 
-                    <div class="mb-6">
-                        <label class="flex items-start gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                name="terms"
-                                id="terms"
-                                <?= isset($_POST['terms']) ? 'checked' : '' ?>
-                                class="mt-1 w-4 h-4 accent-[#C9A84C]"
-                            >
-                            <span class="text-sm text-gray-600 font-body">
-                                Ho letto e accetto i
-                                <a href="<?= SITE_URL ?>/termini.php" class="text-oro hover:underline">Termini di servizio</a>
-                                e la
-                                <a href="<?= SITE_URL ?>/privacy.php" class="text-oro hover:underline">Privacy Policy</a>.
-                                <span class="text-red-400">*</span>
-                            </span>
-                        </label>
-                        <?php if (isset($errors['terms'])): ?>
-                            <p class="text-red-500 text-xs mt-1 ml-7"><?= clean($errors['terms']) ?></p>
-                        <?php endif; ?>
-                    </div>
-
                     <button type="submit" class="btn-oro w-full py-3 rounded-lg font-body text-sm uppercase tracking-widest">
                         Crea account
                     </button>
@@ -309,6 +305,17 @@ include __DIR__ . '/header.php';
 </main>
 
 <script>
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    button.textContent = isHidden ? '🙈' : '👁️';
+    button.setAttribute('aria-label', isHidden ? 'Nascondi password' : 'Mostra password');
+    button.setAttribute('title', isHidden ? 'Nascondi password' : 'Mostra password');
+}
+
 function checkStrength(pw) {
     const bar = document.getElementById('strengthBar');
     const text = document.getElementById('strengthText');

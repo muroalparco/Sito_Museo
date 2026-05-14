@@ -52,7 +52,7 @@ include __DIR__ . '/header.php';
     <article class="bg-white rounded-xl shadow p-7 border border-avorio-dark">
       <div class="text-3xl mb-3">📍</div>
       <h2 class="font-display text-xl font-bold text-antracite mb-2">Dove siamo</h2>
-      <p class="text-gray-500 text-sm leading-relaxed">Via della Storia 12, Roma. Il museo è raggiungibile con mezzi pubblici e dispone di accesso facilitato.</p>
+      <p class="text-gray-500 text-sm leading-relaxed">Via Luigi Pettinati 46, 35128 Padova. Il museo è raggiungibile con mezzi pubblici e dispone di accesso facilitato.</p>
     </article>
     <article class="bg-white rounded-xl shadow p-7 border border-avorio-dark">
       <div class="text-3xl mb-3">🎧</div>

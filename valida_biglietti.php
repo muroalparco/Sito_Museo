@@ -114,11 +114,11 @@ include __DIR__ . '/header.php';
 
       <div class="p-8">
         <?php if ($errore): ?>
-          <div class="alert-error p-4 rounded mb-6 text-sm">⚠️ <?= clean($errore) ?></div>
+          <div class="alert-error floating-alert p-4 rounded mb-6 text-sm" role="alert">⚠️ <?= clean($errore) ?></div>
         <?php endif; ?>
 
         <?php if ($successo): ?>
-          <div class="bg-green-100 border border-green-200 text-green-800 p-4 rounded mb-6 text-sm">✅ <?= clean($successo) ?></div>
+          <div class="floating-alert bg-green-100 border border-green-200 text-green-800 p-4 rounded mb-6 text-sm" role="status">✅ <?= clean($successo) ?></div>
         <?php endif; ?>
 
         <p class="text-gray-600 text-sm leading-relaxed mb-6">

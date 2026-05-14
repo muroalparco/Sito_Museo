@@ -14,12 +14,12 @@ $utente = $stmt->fetch();
 
 // Ultimi 5 ordini con conteggio biglietti
 $ordini = $pdo->prepare(
-    "SELECT o.id_ordine, o.data_acquisto, o.importo_totale,
+    "SELECT o.id_ordine, o.data_acquisto, o.importo_totale, o.stato_pagamento,
             COUNT(b.id_biglietto) AS num_biglietti
      FROM Ordini o
      LEFT JOIN Biglietti b ON b.id_ordine = o.id_ordine
      WHERE o.id_utente = ?
-     GROUP BY o.id_ordine
+     GROUP BY o.id_ordine, o.data_acquisto, o.importo_totale, o.stato_pagamento
      ORDER BY o.data_acquisto DESC
      LIMIT 5"
 );
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'cassiere' => 'Cassiere', 'amministratore' => 'Amministratore'];
+$ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'cassiere' => 'Cassiere', 'amministratore' => 'Amministratore', 'tester' => 'Tester'];
 
 include __DIR__ . '/header.php';
 ?>
@@ -105,8 +105,8 @@ include __DIR__ . '/header.php';
         </h1>
         <p class="text-gray-400 font-body text-sm mt-1 break-all"><?= clean($utente['email']) ?></p>
         <span class="inline-block mt-2 px-3 py-1 text-xs font-body font-bold uppercase tracking-wide rounded-full
-          <?= $utente['ruolo'] === 'amministratore' ? 'bg-oro text-antracite' : ($utente['ruolo'] === 'operatore' ? 'bg-acciaio text-white' : 'bg-gray-600 text-white') ?>">
-          <?= $ruoloLabel[$utente['ruolo']] ?>
+          <?= in_array($utente['ruolo'], ['amministratore','tester'], true) ? 'bg-oro text-antracite' : ($utente['ruolo'] === 'operatore' ? 'bg-acciaio text-white' : 'bg-gray-600 text-white') ?>">
+          <?= clean($ruoloLabel[$utente['ruolo']] ?? $utente['ruolo']) ?>
         </span>
       </div>
       <div class="ml-auto hidden md:flex flex-col items-end text-right">
@@ -121,10 +121,10 @@ include __DIR__ . '/header.php';
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
   <?php if ($successMsg): ?>
-  <div class="alert-success p-4 rounded mb-6 text-sm font-body fade-up">✅ <?= clean($successMsg) ?></div>
+  <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="status">✅ <?= clean($successMsg) ?></div>
   <?php endif; ?>
   <?php if ($errorMsg): ?>
-  <div class="alert-error p-4 rounded mb-6 text-sm font-body fade-up">⚠️ <?= clean($errorMsg) ?></div>
+  <div class="alert-error floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="alert">⚠️ <?= clean($errorMsg) ?></div>
   <?php endif; ?>
 
   <div class="grid lg:grid-cols-3 gap-8">
@@ -148,8 +148,12 @@ include __DIR__ . '/header.php';
         </button>
         <?php endforeach; ?>
         <a href="<?= SITE_URL ?>/logout.php"
-           class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-red-500 hover:bg-red-50 transition-colors">
+           class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-red-500 hover:bg-red-50 transition-colors border-t border-avorio-dark">
           <span class="text-lg">🚪</span> <span>Logout</span>
+        </a>
+        <a href="<?= SITE_URL ?>/elimina_account.php"
+           class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body font-bold text-red-800 bg-red-100 hover:bg-red-200 transition-colors border-t border-red-200">
+          <span class="text-lg">🗑️</span> <span>Elimina account</span>
         </a>
       </nav>
     </aside>
@@ -188,7 +192,7 @@ include __DIR__ . '/header.php';
 
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">Ruolo</label>
-              <input type="text" value="<?= $ruoloLabel[$utente['ruolo']] ?>"
+              <input type="text" value="<?= clean($ruoloLabel[$utente['ruolo']] ?? $utente['ruolo']) ?>"
                      disabled class="w-full px-4 py-3 border border-gray-100 bg-gray-50 rounded-lg font-body text-sm text-gray-400 cursor-not-allowed"/>
             </div>
 
@@ -257,8 +261,14 @@ include __DIR__ . '/header.php';
               </div>
               <div class="text-right flex-shrink-0">
                 <div class="font-display text-lg font-bold text-oro">€<?= number_format($ord['importo_totale'], 2, ',', '.') ?></div>
-                <a href="ordine_dettaglio.php?id=<?= (int)$ord['id_ordine'] ?>"
-                   class="text-xs text-acciaio hover:text-oro transition-colors font-body">Dettagli →</a>
+                <div class="flex flex-col items-end gap-1">
+                  <a href="ordine_dettaglio.php?id=<?= (int)$ord['id_ordine'] ?>"
+                     class="text-xs text-acciaio hover:text-oro transition-colors font-body">Dettagli →</a>
+                  <?php if (($ord['stato_pagamento'] ?? '') === 'Non pagato'): ?>
+                    <a href="<?= SITE_URL ?>/pagamento.php?ordine=<?= (int)$ord['id_ordine'] ?>"
+                       class="text-xs text-oro hover:underline font-body font-bold">Paga →</a>
+                  <?php endif; ?>
+                </div>
               </div>
             </div>
             <?php endforeach; ?>

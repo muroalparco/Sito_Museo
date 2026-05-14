@@ -2,7 +2,64 @@
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/app_mailer.php';
 
-/*  Login  */
+function generaCodice6(): string {
+    return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+}
+
+function colonnaCodiceVerificaEmail(PDO $pdo): string {
+    static $colonna = null;
+
+    if ($colonna !== null) {
+        return $colonna;
+    }
+
+    $candidate = ['codice_verifica_email', 'codice_verifica'];
+
+    foreach ($candidate as $nomeColonna) {
+        try {
+            $stmt = $pdo->prepare("
+                SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'Utenti'
+                  AND COLUMN_NAME = ?
+                LIMIT 1
+            ");
+            $stmt->execute([$nomeColonna]);
+            if ($stmt->fetchColumn()) {
+                $colonna = $nomeColonna;
+                return $colonna;
+            }
+        } catch (Throwable $e) {
+            // Alcuni hosting limitano INFORMATION_SCHEMA: proviamo con SHOW COLUMNS.
+        }
+
+        try {
+            $stmt = $pdo->prepare('SHOW COLUMNS FROM Utenti LIKE ?');
+            $stmt->execute([$nomeColonna]);
+            if ($stmt->fetch()) {
+                $colonna = $nomeColonna;
+                return $colonna;
+            }
+        } catch (Throwable $e) {
+            // Se anche SHOW COLUMNS non è disponibile, passiamo al test SELECT.
+        }
+
+        try {
+            $pdo->query('SELECT `' . $nomeColonna . '` FROM Utenti LIMIT 1');
+            $colonna = $nomeColonna;
+            return $colonna;
+        } catch (Throwable $e) {
+            // Colonna non presente: proviamo la successiva.
+        }
+    }
+
+    // Il database unificato aggiornato usa codice_verifica_email.
+    $colonna = 'codice_verifica_email';
+    return $colonna;
+}
+
+/* Login */
 function loginUtente(string $email, string $password): array {
     $pdo  = getDB();
     $stmt = $pdo->prepare('SELECT * FROM Utenti WHERE email = ? LIMIT 1');
@@ -13,35 +70,31 @@ function loginUtente(string $email, string $password): array {
         return ['success' => false, 'message' => 'Email o password non corretti.'];
     }
 
+    // Se la colonna esiste ed è a 0, l'utente non può ancora accedere.
     if (array_key_exists('email_verificata', $utente) && (int)$utente['email_verificata'] !== 1) {
         return [
             'success' => false,
-            'message' => 'Account non ancora verificato. Controlla la tua email e inserisci il codice di conferma nella pagina di verifica.',
             'verification_required' => true,
-            'email' => $utente['email']
+            'email' => $utente['email'],
+            'message' => 'Account non ancora verificato.'
         ];
     }
 
     session_regenerate_id(true);
-    $_SESSION['utente_id']      = $utente['id_utente'];
-    $_SESSION['utente_nome']    = $utente['nome'];
-    $_SESSION['utente_cognome'] = $utente['cognome'] ?? '';
-    $_SESSION['utente_email']   = $utente['email'];
-    $_SESSION['utente_ruolo']   = $utente['ruolo'];
+    $_SESSION['utente_id']    = $utente['id_utente'];
+    $_SESSION['utente_nome']  = $utente['nome'];
+    $_SESSION['utente_email'] = $utente['email'];
+    $_SESSION['utente_ruolo'] = $utente['ruolo'];
 
     return ['success' => true, 'ruolo' => $utente['ruolo']];
 }
 
-/*  normalizzazione risposta sicurezza  */
+/* Normalizzazione risposta sicurezza */
 function normalizzaRispostaSicurezza(string $risposta): string {
     return mb_strtolower(trim(preg_replace('/\s+/', ' ', $risposta)), 'UTF-8');
 }
 
-function generaCodiceVerificaEmail(): string {
-    return str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-}
-
-/*  registrazione  */
+/* Registrazione con verifica email */
 function registraUtente(
     string $nome,
     string $cognome,
@@ -61,86 +114,43 @@ function registraUtente(
 
     $passwordHash = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
     $rispostaHash = password_hash(normalizzaRispostaSicurezza($risposta_sicurezza), PASSWORD_BCRYPT, ['cost' => 12]);
-    $codiceVerifica = generaCodiceVerificaEmail();
+    $codiceVerifica = generaCodice6();
     $scadenza = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
-    try {
-        $pdo->beginTransaction();
+    $colonnaCodiceVerifica = colonnaCodiceVerificaEmail($pdo);
 
-        $ins = $pdo->prepare("
-            INSERT INTO Utenti
-            (nome, cognome, email, password_hash, domanda_sicurezza, risposta_sicurezza_hash, ruolo, email_verificata, codice_verifica_email, codice_verifica_scadenza)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
-        ");
+    $ins = $pdo->prepare(" 
+        INSERT INTO Utenti 
+(nome, cognome, email, password_hash, domanda_sicurezza, risposta_sicurezza_hash, ruolo, email_verificata, {$colonnaCodiceVerifica}, codice_verifica_scadenza)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
 
-        $ins->execute([
-            $nome,
-            $cognome,
-            $email,
-            $passwordHash,
-            $domanda_sicurezza,
-            $rispostaHash,
-            'visitatore',
-            $codiceVerifica,
-            $scadenza
-        ]);
+    $ins->execute([
+        $nome,
+        $cognome,
+        $email,
+        $passwordHash,
+        $domanda_sicurezza,
+        $rispostaHash,
+        'visitatore',
+        0,
+        $codiceVerifica,
+        $scadenza
+    ]);
 
-        $emailInviata = inviaEmailVerificaAccount($email, $nome, $codiceVerifica);
+    // La registrazione deve rimanere valida anche se il server mail non funziona.
+    $emailInviata = inviaEmailVerificaAccount($email, $nome, $codiceVerifica);
 
-        if (!$emailInviata) {
-            $pdo->rollBack();
-            return [
-                'success' => false,
-                'message' => 'Non è stato possibile inviare la mail di verifica. Controlla la configurazione email e riprova.'
-            ];
-        }
-
-        $pdo->commit();
-
-        return [
-            'success' => true,
-            'verification_required' => true,
-            'email' => $email,
-            'message' => 'Registrazione completata. Prima di accedere devi verificare la tua email con il codice ricevuto.'
-        ];
-    } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        error_log('Errore registrazione utente: ' . $e->getMessage());
-        return ['success' => false, 'message' => 'Errore durante la registrazione. Riprova più tardi.'];
-    }
+    return [
+        'success' => true,
+        'message' => 'Registrazione completata. Prima di accedere devi confermare l’account con il codice ricevuto via email.',
+        'verification_required' => true,
+        'email' => $email,
+        'email_sent' => $emailInviata
+    ];
 }
 
-function verificaCodiceEmail(string $email, string $codice): array {
-    $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id_utente, email_verificata, codice_verifica_email, codice_verifica_scadenza FROM Utenti WHERE email = ? LIMIT 1');
-    $stmt->execute([$email]);
-    $utente = $stmt->fetch();
-
-    if (!$utente) {
-        return ['success' => false, 'message' => 'Utente non trovato.'];
-    }
-
-    if ((int)$utente['email_verificata'] === 1) {
-        return ['success' => true, 'message' => 'Email già verificata. Puoi accedere.'];
-    }
-
-    if (($utente['codice_verifica_email'] ?? '') !== $codice) {
-        return ['success' => false, 'message' => 'Codice di verifica non corretto.'];
-    }
-
-    if (!empty($utente['codice_verifica_scadenza']) && strtotime($utente['codice_verifica_scadenza']) < time()) {
-        return ['success' => false, 'message' => 'Codice scaduto. Richiedi una nuova registrazione o contatta il museo.'];
-    }
-
-    $upd = $pdo->prepare('UPDATE Utenti SET email_verificata = 1, codice_verifica_email = NULL, codice_verifica_scadenza = NULL WHERE id_utente = ?');
-    $upd->execute([(int)$utente['id_utente']]);
-
-    return ['success' => true, 'message' => 'Email verificata correttamente. Ora puoi accedere.'];
-}
-
-/*  Logout  */
+/* Logout */
 function logoutUtente(): void {
     $_SESSION = [];
     if (ini_get('session.use_cookies')) {
@@ -151,26 +161,16 @@ function logoutUtente(): void {
     session_destroy();
 }
 
-/*  visualizza ruolo  */
+/* Ruoli */
 function isLogged(): bool { return isset($_SESSION['utente_id']); }
-function isAdmin(): bool { return ($_SESSION['utente_ruolo'] ?? '') === 'amministratore'; }
-function isOperatore(): bool { return ($_SESSION['utente_ruolo'] ?? '') === 'operatore'; }
-function isCassiere(): bool { return ($_SESSION['utente_ruolo'] ?? '') === 'cassiere'; }
+function ruoloCorrente(): string { return $_SESSION['utente_ruolo'] ?? ''; }
+function isTester(): bool { return ruoloCorrente() === 'tester'; }
+function isAdmin(): bool { return in_array(ruoloCorrente(), ['amministratore', 'tester'], true); }
+function isOperatore(): bool { return in_array(ruoloCorrente(), ['operatore', 'tester'], true); }
+function isCassiere(): bool { return in_array(ruoloCorrente(), ['cassiere', 'tester'], true); }
 
 function requireLogin(string $redirect = 'login.php'): void {
     if (!isLogged()) {
-        header('Location: ' . SITE_URL . '/' . $redirect);
-        exit;
-    }
-}
-
-
-function requireCassiere(string $redirect = 'index.php'): void {
-    if (!isLogged()) {
-        header('Location: ' . SITE_URL . '/login.php');
-        exit;
-    }
-    if (!isCassiere()) {
         header('Location: ' . SITE_URL . '/' . $redirect);
         exit;
     }
@@ -187,7 +187,18 @@ function requireAdmin(string $redirect = 'index.php'): void {
     }
 }
 
-/* token hash csrf */
+function requireCassiere(string $redirect = 'index.php'): void {
+    if (!isLogged()) {
+        header('Location: ' . SITE_URL . '/login.php');
+        exit;
+    }
+    if (!isCassiere()) {
+        header('Location: ' . SITE_URL . '/' . $redirect);
+        exit;
+    }
+}
+
+/* CSRF */
 function csrfToken(): string {
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -199,7 +210,7 @@ function verifyCsrf(string $token): bool {
     return hash_equals($_SESSION['csrf_token'] ?? '', $token);
 }
 
-/* per evitare il coso injeection */
+/* Escape output */
 function clean(string $val): string {
     return htmlspecialchars(trim($val), ENT_QUOTES, 'UTF-8');
 }

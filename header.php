@@ -1,123 +1,332 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
+
+$cssPath = __DIR__ . '/assets/css/style.css';
+$cssVersion = file_exists($cssPath) ? filemtime($cssPath) : time();
+$tailwindPath = __DIR__ . '/assets/css/tailwind-local.css';
+$tailwindVersion = file_exists($tailwindPath) ? filemtime($tailwindPath) : $cssVersion;
+$homeCriticalPath = __DIR__ . '/assets/css/home-critical.css';
+$currentPage = basename($_SERVER['PHP_SELF']);
+$isAdminPage = ($currentPage === 'admin.php' && isAdmin());
+
+$metaDescriptions = [
+    'index.php' => 'Visita il Museo Storico Severi: scopri esposizioni, novità, servizi, tariffe e prenota online i biglietti per il tuo percorso museale.',
+    'esposizioni.php' => 'Scopri le esposizioni del Museo Storico Severi, consulta mostre disponibili, dettagli, date e percorsi di visita.',
+    'novita.php' => 'Leggi le novità del Museo Storico Severi: aggiornamenti, iniziative, eventi e comunicazioni per visitatori, studenti e docenti.',
+    'chi_siamo.php' => 'Scopri il progetto Museo Storico Severi, nato come laboratorio didattico per unire storia, tecnologia, accessibilità e competenze digitali.',
+    'info.php' => 'Consulta informazioni, tariffe, riduzioni, servizi opzionali e indicazioni utili per organizzare la visita al Museo Storico Severi.',
+    'prenota.php' => 'Prenota online i biglietti per il Museo Storico Severi scegliendo data, fascia oraria, categoria e servizi aggiuntivi.',
+    'prenota_docente.php' => 'Prenota una visita scolastica al Museo Storico Severi indicando docente, classe, studenti, data e fascia oraria.',
+    'recupera_ordine.php' => 'Recupera il tuo ordine del Museo Storico Severi inserendo il codice ricevuto e consulta o ristampa i biglietti acquistati.',
+    'biglietti.php' => 'Visualizza e stampa i biglietti del Museo Storico Severi associati al tuo ordine o alla tua prenotazione.',
+    'pagamento.php' => 'Completa il pagamento simulato della prenotazione e conferma l’ordine dei biglietti per il Museo Storico Severi.',
+    'registrazione.php' => 'Crea un account per gestire prenotazioni, ordini e biglietti del Museo Storico Severi in modo semplice e sicuro.',
+    'login.php' => 'Accedi al tuo account del Museo Storico Severi per consultare profilo, ordini, prenotazioni e biglietti.',
+    'account.php' => 'Gestisci il tuo profilo utente del Museo Storico Severi, controlla i dati personali, gli ordini e le impostazioni account.',
+    'ordini.php' => 'Consulta lo storico dei tuoi ordini e delle prenotazioni effettuate per il Museo Storico Severi.',
+    'admin.php' => 'Area amministratore del Museo Storico Severi per gestire utenti, esposizioni, fasce orarie, tariffe, servizi e ordini.',
+    'cassa.php' => 'Area cassa del Museo Storico Severi per creare ordini, emettere biglietti e gestire acquisti in presenza.',
+    'valida_biglietti.php' => 'Area operatore per controllare e validare i biglietti del Museo Storico Severi tramite codice ticket.',
+    'recupero_password.php' => 'Recupera la password del tuo account del Museo Storico Severi e ripristina l’accesso in modo sicuro.',
+    'verifica_email.php' => 'Verifica l’indirizzo email associato al tuo account del Museo Storico Severi e completa la registrazione.',
+    '404.php' => 'Pagina non trovata sul sito del Museo Storico Severi: torna alla home o consulta le sezioni principali del museo.'
+];
+$metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo Storico Severi: sito per informazioni, esposizioni, tariffe, prenotazioni online, ordini e biglietti del percorso museale.';
 ?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= clean($pageTitle ?? SITE_NAME) ?> — <?= SITE_NAME ?></title>
+  <meta name="description" content="<?= clean($metaDescription) ?>">
 
-  <!--  fonts presi da gogle: Playfair Display + Lato -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <?php if ($currentPage !== 'index.php'): ?>
+    <!-- Font Google caricati solo sulle pagine interne: sulla home restano i font di sistema per migliorare FCP/LCP -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    >
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    </noscript>
+  <?php endif; ?>
 
-  <!-- Tailwind css cdn -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            oro:     '#C9A84C',
-            'oro-dark': '#A8822A',
-            acciaio: '#6B8CAE',
-            avorio:  '#F5F0E8',
-            'avorio-dark': '#EAE3D2',
-            antracite: '#2C2C2C',
-            'antracite-light': '#4A4A4A',
-          },
-          fontFamily: {
-            display: ['"Playfair Display"', 'Georgia', 'serif'],
-            body:    ['Lato', 'sans-serif'],
-          },
-        }
+  <?php if ($currentPage === 'index.php'): ?>
+
+    <!-- Home ottimizzata e valida W3C: CSS minimo inline, senza Tailwind completo e senza richieste esterne critiche. -->
+    <style>
+<?php
+      if (file_exists($homeCriticalPath)) {
+          echo file_get_contents($homeCriticalPath);
+          echo "\n";
       }
-    }
-  </script>
+?>
+    </style>
 
-<link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=20">
+  <?php else: ?>
+    <!-- Tailwind locale generato: evita il CDN JavaScript bloccante -->
+    <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/tailwind-local.css?v=<?= $tailwindVersion ?>">
+    <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= $cssVersion ?>">
+  <?php endif; ?>
 </head>
+
 <body class="min-h-screen flex flex-col">
 
-<!-- inizio header / navbar  -->
+<!-- Inizio header / navbar -->
 <header class="bg-antracite shadow-lg sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between h-20">
+    <div class="flex items-center justify-between h-20 <?= $isAdminPage ? 'admin-header-row' : '' ?>">
+
+      <?php if ($isAdminPage): ?>
+        <button
+          type="button"
+          id="adminMobileMenuButton"
+          class="admin-header-admin-button md:hidden"
+          aria-controls="adminMobileMenuPanel"
+          aria-expanded="false"
+          aria-label="Apri menu amministrazione"
+        >
+          <span aria-hidden="true">☰</span>
+          <span>Admin</span>
+        </button>
+      <?php endif; ?>
 
       <!-- Logo -->
-      <a href="<?= SITE_URL ?>/index.php" class="flex items-center gap-3 group">
+      <a href="<?= SITE_URL ?>/index.php" class="flex items-center gap-3 group shrink-0 <?= $isAdminPage ? 'admin-header-logo' : '' ?>">
         <img 
-          src="<?= SITE_URL ?>/img/logo.png" 
+          src="<?= SITE_URL ?>/img/logo-128.webp" 
+          srcset="<?= SITE_URL ?>/img/logo-128.webp 128w, <?= SITE_URL ?>/img/logo-256.webp 256w"
+          sizes="(max-width: 640px) 56px, 64px"
+          width="64"
+          height="64"
           alt="Logo Museo Storico Severi"
-          class="h-16 w-auto object-contain drop-shadow-[0_0_10px_rgba(201,168,76,0.30)]"
+          class="h-14 sm:h-16 w-auto object-contain drop-shadow-[0_0_10px_rgba(201,168,76,0.30)]"
+          decoding="async"
         >
+
         <div class="leading-tight hidden sm:block">
-          <div class="font-display text-oro text-lg font-semibold tracking-wide group-hover:text-oro-dark transition-colors">Museo Storico</div>
-          <div class="font-display text-avorio text-sm tracking-widest uppercase">Severi</div>
+          <div class="font-display text-oro text-lg font-semibold tracking-wide group-hover:text-oro-dark transition-colors">
+            Museo Storico
+          </div>
+          <div class="font-display text-avorio text-sm tracking-widest uppercase">
+            Severi
+          </div>
         </div>
       </a>
 
-      <!-- nav links pc -->
+      <!-- Navigazione desktop -->
       <nav class="hidden md:flex items-center gap-1">
         <a href="<?= SITE_URL ?>/index.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'index.php') ? 'text-oro border-b border-oro' : '' ?>">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'index.php') ? 'text-oro border-b border-oro' : '' ?>">
           Home
         </a>
 
+        <a href="<?= SITE_URL ?>/chi_siamo.php"
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'chi_siamo.php') ? 'text-oro border-b border-oro' : '' ?>">
+          Chi siamo
+        </a>
+
         <a href="<?= SITE_URL ?>/esposizioni.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'esposizioni.php') ? 'text-oro border-b border-oro' : '' ?>">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'esposizioni.php') ? 'text-oro border-b border-oro' : '' ?>">
           Esposizioni
         </a>
 
         <a href="<?= SITE_URL ?>/novita.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'novita.php') ? 'text-oro border-b border-oro' : '' ?>">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'novita.php') ? 'text-oro border-b border-oro' : '' ?>">
           Novità
         </a>
+
         <a href="<?= SITE_URL ?>/info.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= (basename($_SERVER['PHP_SELF']) === 'info.php') ? 'text-oro border-b border-oro' : '' ?>">
+           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'info.php') ? 'text-oro border-b border-oro' : '' ?>">
           Info & Tariffe
         </a>
       </nav>
 
-      <!-- Auth pulsanti  -->
-      <div class="flex items-center gap-3">
+      <!-- Area utente desktop -->
+      <div class="hidden md:flex items-center gap-3">
         <?php if (isLogged()): ?>
-          <div class="nav-dropdown relative">
-            <button class="flex items-center gap-2 text-avorio hover:text-oro transition-colors">
+
+          <div class="nav-dropdown">
+            <button type="button" class="flex items-center gap-2 text-avorio hover:text-oro transition-colors">
               <div class="w-8 h-8 rounded-full bg-oro flex items-center justify-center text-antracite font-bold text-sm">
-                <?= strtoupper(substr($_SESSION['utente_nome'], 0, 1)) ?>
+                <?= strtoupper(substr($_SESSION['utente_nome'] ?? 'U', 0, 1)) ?>
               </div>
-              <span class="hidden sm:block text-sm font-body"><?= clean($_SESSION['utente_nome']) ?></span>
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+              <span class="hidden sm:block text-sm font-body">
+                <?= clean($_SESSION['utente_nome'] ?? 'Utente') ?>
+              </span>
+
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
-            <div class="nav-menu absolute top-full right-0 w-48 bg-antracite-light rounded shadow-xl py-1 border-t-2 border-oro">
-              <a href="<?= SITE_URL ?>/account.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">Il mio account</a>
-              <a href="<?= SITE_URL ?>/ordini.php" class="block px-4 py-2 text-avorio text-sm hover:bg-antracite hover:text-oro transition-colors">I miei ordini</a>
+
+            <div class="nav-dropdown-menu nav-dropdown-menu-right">
+              <a href="<?= SITE_URL ?>/account.php">Il mio account</a>
+              <a href="<?= SITE_URL ?>/ordini.php">I miei ordini</a>
+
               <?php if (isAdmin()): ?>
-              <a href="<?= SITE_URL ?>/admin.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Vista amministratore</a>
+                <a href="<?= SITE_URL ?>/admin.php" class="admin-link">Vista amministratore</a>
               <?php endif; ?>
+
               <?php if (isOperatore()): ?>
-              <a href="<?= SITE_URL ?>/valida_biglietti.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Valida biglietti</a>
+                <a href="<?= SITE_URL ?>/valida_biglietti.php" class="admin-link">Valida biglietti</a>
               <?php endif; ?>
+
               <?php if (isCassiere()): ?>
-              <a href="<?= SITE_URL ?>/cassa.php" class="block px-4 py-2 text-oro text-sm hover:bg-antracite transition-colors">Cassa</a>
+                <a href="<?= SITE_URL ?>/cassa.php" class="admin-link">Cassa</a>
               <?php endif; ?>
-              <hr class="border-antracite my-1">
-              <a href="<?= SITE_URL ?>/logout.php" class="block px-4 py-2 text-red-400 text-sm hover:bg-antracite transition-colors">Logout</a>
+
+              <a href="<?= SITE_URL ?>/logout.php" class="logout-link">Logout</a>
             </div>
           </div>
+
         <?php else: ?>
-          <a href="<?= SITE_URL ?>/login.php"
-             class="btn-outline px-4 py-2 rounded text-sm font-body">Accedi</a>
-          <a href="<?= SITE_URL ?>/registrazione.php"
-             class="btn-oro px-4 py-2 rounded text-sm font-body">Registrati</a>
+
+          <div class="header-buttons">
+            <a href="<?= SITE_URL ?>/login.php" class="header-btn header-btn-outline">
+              Accedi
+            </a>
+
+            <a href="<?= SITE_URL ?>/registrazione.php" class="header-btn header-btn-gold">
+              Registrati
+            </a>
+          </div>
+
         <?php endif; ?>
       </div>
 
+      <!-- Bottone menu mobile -->
+      <button 
+        type="button"
+        id="mobileMenuButton"
+        class="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-lg border border-oro/50 text-oro hover:bg-oro hover:text-antracite transition-colors"
+        aria-controls="mobileMenu"
+        aria-expanded="false"
+        aria-label="Apri menu di navigazione"
+      >
+        <svg id="mobileMenuIconOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg id="mobileMenuIconClose" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
     </div>
   </div>
+
+  <!-- Menu mobile -->
+  <div id="mobileMenu" class="mobile-menu md:hidden hidden border-t border-oro/20 bg-antracite">
+    <div class="px-4 pt-3 pb-5 space-y-2">
+      <a href="<?= SITE_URL ?>/index.php" class="mobile-menu-link <?= ($currentPage === 'index.php') ? 'mobile-menu-link-active' : '' ?>">Home</a>
+      <a href="<?= SITE_URL ?>/chi_siamo.php" class="mobile-menu-link <?= ($currentPage === 'chi_siamo.php') ? 'mobile-menu-link-active' : '' ?>">Chi siamo</a>
+      <a href="<?= SITE_URL ?>/esposizioni.php" class="mobile-menu-link <?= ($currentPage === 'esposizioni.php') ? 'mobile-menu-link-active' : '' ?>">Esposizioni</a>
+      <a href="<?= SITE_URL ?>/novita.php" class="mobile-menu-link <?= ($currentPage === 'novita.php') ? 'mobile-menu-link-active' : '' ?>">Novità</a>
+      <a href="<?= SITE_URL ?>/info.php" class="mobile-menu-link <?= ($currentPage === 'info.php') ? 'mobile-menu-link-active' : '' ?>">Info & Tariffe</a>
+
+      <div class="h-px bg-oro/20 my-3"></div>
+
+      <?php if (isLogged()): ?>
+        <div class="flex items-center gap-3 px-3 py-3 rounded-xl bg-antracite-light/70 mb-3">
+          <div class="w-9 h-9 rounded-full bg-oro flex items-center justify-center text-antracite font-bold text-sm">
+            <?= strtoupper(substr($_SESSION['utente_nome'] ?? 'U', 0, 1)) ?>
+          </div>
+          <div>
+            <div class="text-avorio font-body font-bold text-sm"><?= clean($_SESSION['utente_nome'] ?? 'Utente') ?></div>
+            <div class="text-oro text-xs uppercase tracking-widest"><?= clean($_SESSION['utente_ruolo'] ?? 'utente') ?></div>
+          </div>
+        </div>
+
+        <a href="<?= SITE_URL ?>/account.php" class="mobile-menu-link">Il mio account</a>
+        <a href="<?= SITE_URL ?>/ordini.php" class="mobile-menu-link">I miei ordini</a>
+
+        <?php if (isAdmin()): ?>
+          <a href="<?= SITE_URL ?>/admin.php" class="mobile-menu-link mobile-menu-link-gold">Vista amministratore</a>
+        <?php endif; ?>
+
+        <?php if (isOperatore()): ?>
+          <a href="<?= SITE_URL ?>/valida_biglietti.php" class="mobile-menu-link mobile-menu-link-gold">Valida biglietti</a>
+        <?php endif; ?>
+
+        <?php if (isCassiere()): ?>
+          <a href="<?= SITE_URL ?>/cassa.php" class="mobile-menu-link mobile-menu-link-gold">Cassa</a>
+        <?php endif; ?>
+
+        <a href="<?= SITE_URL ?>/logout.php" class="mobile-menu-link mobile-menu-link-danger">Logout</a>
+      <?php else: ?>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a href="<?= SITE_URL ?>/login.php" class="header-btn header-btn-outline w-full">Accedi</a>
+          <a href="<?= SITE_URL ?>/registrazione.php" class="header-btn header-btn-gold w-full">Registrati</a>
+        </div>
+      <?php endif; ?>
+    </div>
+  </div>
+
+  <?php if ($isAdminPage): ?>
+    <?php
+      $headerAdminMenuItems = [
+        ['href' => '#admin-esposizioni', 'label' => 'Esposizioni'],
+        ['href' => '#admin-categorie', 'label' => 'Categorie riduzioni'],
+        ['href' => '#admin-tariffe', 'label' => 'Tariffe'],
+        ['href' => '#admin-servizi', 'label' => 'Servizi'],
+        ['href' => '#admin-utenti', 'label' => 'Utenti'],
+      ];
+    ?>
+    <div id="adminMobileBackdrop" class="admin-mobile-backdrop md:hidden" hidden></div>
+
+    <nav id="adminMobileMenuPanel" class="admin-mobile-panel md:hidden" aria-label="Menu amministrazione mobile" hidden>
+      <div class="admin-mobile-panel-header">
+        <div>
+          <p>Menu amministrazione</p>
+          <strong>Navigazione rapida</strong>
+        </div>
+        <button type="button" id="adminMobileMenuClose" aria-label="Chiudi menu amministrazione">×</button>
+      </div>
+      <div class="admin-mobile-links">
+        <?php foreach ($headerAdminMenuItems as $item): ?>
+          <a href="<?= clean($item['href']) ?>"><?= clean($item['label']) ?></a>
+        <?php endforeach; ?>
+      </div>
+    </nav>
+  <?php endif; ?>
 </header>
-<!--  fine header  -->
+<!-- Fine header -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const button = document.getElementById('mobileMenuButton');
+    const menu = document.getElementById('mobileMenu');
+    const iconOpen = document.getElementById('mobileMenuIconOpen');
+    const iconClose = document.getElementById('mobileMenuIconClose');
+
+    if (!button || !menu) return;
+
+    button.addEventListener('click', function () {
+      const isOpen = !menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', isOpen);
+      button.setAttribute('aria-expanded', String(!isOpen));
+
+      if (iconOpen && iconClose) {
+        iconOpen.classList.toggle('hidden', !isOpen);
+        iconClose.classList.toggle('hidden', isOpen);
+      }
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.floating-alert').forEach(function (alertBox) {
+      if (alertBox.parentNode !== document.body) {
+        document.body.appendChild(alertBox);
+      }
+    });
+  });
+</script>

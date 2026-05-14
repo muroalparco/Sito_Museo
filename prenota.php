@@ -26,7 +26,7 @@ try {
         }
     }
 
-    $tariffeStmt = $pdo->prepare("\n        SELECT t.id_tariffa, t.tipo_biglietto, t.prezzo, cr.id_categoria, cr.nome AS categoria, cr.percentuale_sconto, cr.documento_richiesto\n        FROM Tariffe t\n        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria\n        WHERE t.tipo_biglietto = ?\n        ORDER BY t.prezzo DESC\n    ");
+    $tariffeStmt = $pdo->prepare("\n        SELECT t.id_tariffa, t.tipo_biglietto, t.prezzo, cr.id_categoria, cr.nome AS categoria, cr.percentuale_sconto, cr.documento_richiesto\n        FROM Tariffe t\n        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria\n        WHERE t.tipo_biglietto = ?\n          AND LOWER(cr.nome) <> 'docente accompagnatore'\n        ORDER BY t.prezzo DESC\n    ");
     $tariffeStmt->execute([$tipo]);
     $tariffe = $tariffeStmt->fetchAll();
 

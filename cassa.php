@@ -195,13 +195,13 @@ include __DIR__ . '/header.php';
     </section>
 
     <?php if ($errore): ?>
-      <div class="mb-8 rounded-xl bg-red-50 border border-red-200 text-red-700 px-5 py-4">
+      <div class="floating-alert mb-8 rounded-xl bg-red-50 border border-red-200 text-red-700 px-5 py-4" role="alert">
         <?= clean($errore) ?>
       </div>
     <?php endif; ?>
 
     <?php if ($successo): ?>
-      <div class="mb-8 rounded-xl bg-green-50 border border-green-200 text-green-700 px-5 py-4">
+      <div class="floating-alert mb-8 rounded-xl bg-green-50 border border-green-200 text-green-700 px-5 py-4" role="status">
         <?= clean($successo) ?>
       </div>
     <?php endif; ?>

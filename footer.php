@@ -1,8 +1,3 @@
-<style>
-  @media print {
-    .footer-link-rapidi { display: none !important; }
-  }
-</style>
 <!-- footer -->
 <footer class="bg-antracite text-avorio mt-auto">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -11,7 +6,7 @@
       <!-- colonna 1 brand -->
       <div>
         <div class="flex items-center gap-3 mb-4">
-          <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain">
+          <img src="<?= SITE_URL ?>/img/logo-128.webp" width="48" height="48" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain" loading="lazy" decoding="async">
           <div>
             <div class="font-display text-oro font-semibold">Museo Storico Severi</div>
             <div class="text-xs text-gray-400 tracking-widest uppercase">Dal 2020</div>
@@ -27,9 +22,10 @@
         <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h4>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a></li>
+          <li><a href="<?= SITE_URL ?>/chi_siamo.php" class="hover:text-oro transition-colors">Chi siamo</a></li>
           <li><a href="<?= SITE_URL ?>/esposizioni.php" class="hover:text-oro transition-colors">Esposizioni</a></li>
           <li><a href="<?= SITE_URL ?>/info.php" class="hover:text-oro transition-colors">Informazioni & Tariffe</a></li>
-          <li><a href="<?= SITE_URL ?>/login.php" class="hover:text-oro transition-colors">Area riservata</a></li>
+          <li><a href="<?= isLogged() ? SITE_URL . '/account.php' : SITE_URL . '/login.php' ?>" class="hover:text-oro transition-colors">Area riservata</a></li>
         </ul>
       </div>
 
@@ -53,7 +49,7 @@
       </div>
     </div>
 
-    <hr class="border-gray-700 my-8 oro-line" />
+    <hr class="border-gray-700 my-8 oro-line">
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
       <span>&copy; <?= date('Y') ?> Museo Storico Severi. Tutti i diritti riservati.</span>
       <span class="font-display italic text-gray-600">«La storia è il testimone dei tempi» — Cicerone</span>

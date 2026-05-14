@@ -8,18 +8,39 @@ $pageTitle = 'Novità';
 $novita = [];
 $conteggioNovita = 0;
 
+function colonnaEsposizioniEsiste(PDO $pdo, string $colonna): bool
+{
+    try {
+        $stmt = $pdo->prepare("SHOW COLUMNS FROM Esposizioni LIKE ?");
+        $stmt->execute([$colonna]);
+        return (bool) $stmt->fetch();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function emojiEsposizioneNovita(array $esposizione): string
+{
+    $emoji = trim((string)($esposizione['emoji'] ?? ''));
+    return $emoji !== '' ? $emoji : '🏛️';
+}
+
 try {
     $pdo = getDB();
+    $campiEsposizione = 'id_esposizione, titolo, descrizione, data_inizio, data_fine, stato';
+    if (colonnaEsposizioniEsiste($pdo, 'emoji')) {
+        $campiEsposizione .= ', emoji';
+    }
 
     if (isAdmin()) {
-        $stmt = $pdo->query("SELECT id_esposizione, titolo, descrizione, data_inizio, data_fine, stato
+        $stmt = $pdo->query("SELECT $campiEsposizione
                              FROM Esposizioni
                              ORDER BY data_inizio DESC
                              LIMIT 7");
 
         $stmtCount = $pdo->query("SELECT COUNT(*) AS totale FROM Esposizioni");
     } else {
-        $stmt = $pdo->query("SELECT id_esposizione, titolo, descrizione, data_inizio, data_fine, stato
+        $stmt = $pdo->query("SELECT $campiEsposizione
                              FROM Esposizioni
                              WHERE stato <> 'Bozza'
                              ORDER BY data_inizio DESC
@@ -39,8 +60,6 @@ try {
 
 $primaNovita = $novita[0] ?? null;
 $altreNovita = array_slice($novita, 1);
-
-$icone = ['🏺', '⚔️', '🏰', '🎨', '🖼️', '📜', '🏛️'];
 
 function badgeStatoClass(string $stato): string
 {
@@ -166,7 +185,7 @@ include __DIR__ . '/header.php';
             <div class="bg-avorio-dark p-10 flex items-center justify-center relative overflow-hidden">
               <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(circle at 30% 30%, #C9A84C 0, transparent 20%), radial-gradient(circle at 70% 70%, #C9A84C 0, transparent 20%);"></div>
               <div class="relative text-center">
-                <div class="text-8xl mb-4"><?= $icone[0] ?></div>
+                <div class="text-8xl mb-4"><?= clean(emojiEsposizioneNovita($primaNovita)) ?></div>
                 <span class="inline-flex items-center px-4 py-2 rounded-full border text-xs font-bold uppercase tracking-wide <?= badgeStatoClass($primaNovita['stato']) ?>">
                   <?= clean($primaNovita['stato']) ?>
                 </span>
@@ -206,7 +225,7 @@ include __DIR__ . '/header.php';
               <div class="p-7">
                 <div class="flex items-center justify-between gap-3 mb-5">
                   <div class="w-12 h-12 rounded-full bg-avorio-dark flex items-center justify-center text-2xl">
-                    <?= $icone[($idx + 1) % count($icone)] ?>
+                    <?= clean(emojiEsposizioneNovita($n)) ?>
                   </div>
                   <span class="inline-flex items-center px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wide <?= badgeStatoClass($n['stato']) ?>">
                     <?= clean($n['stato']) ?>

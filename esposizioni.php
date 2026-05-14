@@ -14,16 +14,26 @@ $statiAmmessi = isAdmin()
 $statoRichiesto = $_GET['stato'] ?? '';
 $stato = in_array($statoRichiesto, $statiAmmessi, true) ? $statoRichiesto : null;
 
+function esposizioniPaginaSupportaEmoji(PDO $pdo): bool {
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM Esposizioni LIKE 'emoji'");
+        return (bool)$stmt->fetch();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 try {
     $pdo = getDB();
+    $colonneEsposizioni = esposizioniPaginaSupportaEmoji($pdo) ? '*' : 'id_esposizione, titolo, descrizione, data_inizio, data_fine, stato';
     if ($stato) {
-        $stmt = $pdo->prepare("SELECT * FROM Esposizioni WHERE stato = ? ORDER BY data_inizio DESC");
+        $stmt = $pdo->prepare("SELECT {$colonneEsposizioni} FROM Esposizioni WHERE stato = ? ORDER BY data_inizio DESC");
         $stmt->execute([$stato]);
     } else {
         if (isAdmin()) {
-            $stmt = $pdo->query("SELECT * FROM Esposizioni ORDER BY FIELD(stato,'Pubblicata','Bozza','Conclusa','Annullata'), data_inizio DESC");
+            $stmt = $pdo->query("SELECT {$colonneEsposizioni} FROM Esposizioni ORDER BY FIELD(stato,'Pubblicata','Bozza','Conclusa','Annullata'), data_inizio DESC");
         } else {
-            $stmt = $pdo->prepare("SELECT * FROM Esposizioni WHERE stato <> 'Bozza' ORDER BY FIELD(stato,'Pubblicata','Conclusa','Annullata'), data_inizio DESC");
+            $stmt = $pdo->prepare("SELECT {$colonneEsposizioni} FROM Esposizioni WHERE stato <> 'Bozza' ORDER BY FIELD(stato,'Pubblicata','Conclusa','Annullata'), data_inizio DESC");
             $stmt->execute();
         }
     }
@@ -125,7 +135,7 @@ include __DIR__ . '/header.php';
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
     <?php foreach ($esposizioni as $esp): ?>
     <?php
-      $icona = $icone[$i++ % count($icone)];
+      $icona = $esp['emoji'] ?? $icone[$i++ % count($icone)];
       $dataInizio = strtotime($esp['data_inizio']);
       $dataFine = strtotime($esp['data_fine']);
       $meseInizio = strtoupper(date('M', $dataInizio));
@@ -139,7 +149,7 @@ include __DIR__ . '/header.php';
       <div class="relative p-6 pt-7">
         <div class="flex items-start justify-between gap-4 mb-7">
           <div class="w-20 h-20 -mt-3 rounded-2xl bg-avorio border-4 border-white shadow-lg flex items-center justify-center text-4xl group-hover:scale-105 transition-transform duration-300">
-            <?= $icona ?>
+            <?= clean($icona) ?>
           </div>
 
           <div class="text-right">

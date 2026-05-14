@@ -104,9 +104,16 @@ include __DIR__ . '/header.php';
                 <p class="font-display text-3xl font-bold text-oro mb-4">
                   € <?= number_format((float)$ordine['importo_totale'], 2, ',', '.') ?>
                 </p>
-                <a href="<?= SITE_URL ?>/biglietti.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-outline inline-block px-5 py-2 rounded text-sm">
-                  Vedi biglietti
-                </a>
+                <div class="flex flex-col sm:flex-row md:flex-col gap-2 md:items-end">
+                  <a href="<?= SITE_URL ?>/biglietti.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-outline inline-block px-5 py-2 rounded text-sm text-center">
+                    Vedi biglietti
+                  </a>
+                  <?php if (($ordine['stato_pagamento'] ?? '') === 'Non pagato'): ?>
+                    <a href="<?= SITE_URL ?>/pagamento.php?ordine=<?= (int)$ordine['id_ordine'] ?>" class="btn-oro inline-block px-5 py-2 rounded text-sm text-center">
+                      Paga
+                    </a>
+                  <?php endif; ?>
+                </div>
               </div>
             </div>
           </article>
