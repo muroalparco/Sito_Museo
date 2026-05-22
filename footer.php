@@ -6,7 +6,7 @@
       <!-- colonna 1 brand -->
       <div>
         <div class="flex items-center gap-3 mb-4">
-          <img src="<?= SITE_URL ?>/img/logo-128.webp" width="48" height="48" alt="Logo Museo Storico Severi" class="h-12 w-auto object-contain" loading="lazy" decoding="async">
+          <img src="<?= SITE_URL ?>/img/logo-256.webp" width="64" height="48" alt="Logo Museo Storico Severi" class="footer-logo-img object-contain" loading="lazy" decoding="async">
           <div>
             <div class="font-display text-oro font-semibold">Museo Storico Severi</div>
             <div class="text-xs text-gray-400 tracking-widest uppercase">Dal 2020</div>
@@ -19,7 +19,7 @@
 
       <!-- colonna 2 link -->
       <div class="footer-link-rapidi print:hidden">
-        <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h4>
+        <h3 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Link rapidi</h3>
         <ul class="space-y-2 text-sm text-gray-400">
           <li><a href="<?= SITE_URL ?>/index.php" class="hover:text-oro transition-colors">Home</a></li>
           <li><a href="<?= SITE_URL ?>/chi_siamo.php" class="hover:text-oro transition-colors">Chi siamo</a></li>
@@ -31,7 +31,7 @@
 
       <!-- colonna 3 contatti -->
       <div>
-        <h4 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Contatti</h4>
+        <h3 class="font-display text-oro text-sm uppercase tracking-widest mb-4">Contatti</h3>
         <ul class="space-y-2 text-sm text-gray-400">
           <li class="flex items-start gap-2">
             <svg class="w-4 h-4 mt-0.5 text-oro flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -56,5 +56,18 @@
     </div>
   </div>
 </footer>
+<script id="auto-hide-alerts-global">
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.floating-alert, .alert-success, .alert-error').forEach(function (box) {
+    if (box.dataset.keepOpen === 'true') return;
+    window.setTimeout(function () {
+      box.style.transition = 'opacity .35s ease, transform .35s ease';
+      box.style.opacity = '0';
+      box.style.transform = box.classList.contains('floating-alert') ? 'translate(-50%, -8px)' : 'translateY(-8px)';
+      window.setTimeout(function () { box.remove(); }, 450);
+    }, 4200);
+  });
+});
+</script>
 </body>
 </html>

@@ -11,7 +11,7 @@ include __DIR__ . '/header.php';
 <main class="min-h-screen bg-avorio py-16 px-4 flex items-center">
     <section class="max-w-3xl mx-auto w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 md:p-12 text-center">
         <img
-            src="<?= SITE_URL ?>/img/logo.png"
+            src="<?= SITE_URL ?>/img/logo.svg"
             alt="Logo Museo Storico Severi"
             class="h-28 w-auto mx-auto mb-6 object-contain"
         >

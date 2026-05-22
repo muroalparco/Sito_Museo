@@ -30,7 +30,6 @@ include __DIR__ . '/header.php';
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
   <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
     <article class="bg-white rounded-2xl shadow border border-avorio-dark p-7">
-      <div class="text-4xl mb-4">🏛️</div>
       <h2 class="font-display text-2xl font-bold text-antracite mb-3">Perché un museo</h2>
       <p class="text-gray-500 text-sm leading-relaxed">
         Abbiamo scelto il tema del museo perché permette di raccontare contenuti culturali in modo ordinato, visivo e coinvolgente. Le esposizioni diventano pagine da progettare, descrivere, organizzare e rendere prenotabili.
@@ -38,7 +37,6 @@ include __DIR__ . '/header.php';
     </article>
 
     <article class="bg-white rounded-2xl shadow border border-avorio-dark p-7">
-      <div class="text-4xl mb-4">💻</div>
       <h2 class="font-display text-2xl font-bold text-antracite mb-3">Tecnologia reale</h2>
       <p class="text-gray-500 text-sm leading-relaxed">
         Il sito non è solo una vetrina: usa PHP, MySQL, login, ruoli, ordini, biglietti, cassa, verifica email e validazione dei ticket. Ogni funzione aiuta a capire come lavora un servizio digitale completo.
@@ -46,13 +44,19 @@ include __DIR__ . '/header.php';
     </article>
 
     <article class="bg-white rounded-2xl shadow border border-avorio-dark p-7">
-      <div class="text-4xl mb-4">🤝</div>
       <h2 class="font-display text-2xl font-bold text-antracite mb-3">Lavoro di squadra</h2>
       <p class="text-gray-500 text-sm leading-relaxed">
         Il progetto valorizza ruoli diversi: chi cura i contenuti, chi progetta l’interfaccia, chi controlla i dati, chi testa il sistema e chi ragiona sull’esperienza dell’utente.
       </p>
     </article>
   </section>
+
+  <figure class="mb-16 rounded-2xl overflow-hidden shadow-xl border border-avorio-dark bg-white">
+    <picture>
+      <source srcset="<?= SITE_URL ?>/img/foto/galleria-storica.webp 640w, <?= SITE_URL ?>/img/foto/galleria-storica@2x.webp 960w" sizes="(max-width: 1024px) 100vw, 960px">
+      <img src="<?= SITE_URL ?>/img/foto/galleria-storica.webp" width="960" height="576" alt="Galleria del Museo Storico Severi" class="w-full h-auto object-cover" loading="lazy" decoding="async">
+    </picture>
+  </figure>
 
   <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden mb-12">
     <div class="grid grid-cols-1 lg:grid-cols-2">

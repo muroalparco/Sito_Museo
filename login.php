@@ -1,5 +1,4 @@
 <?php
-
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 
@@ -63,8 +62,8 @@ include __DIR__ . '/header.php';
 </div>
 
 <!-- form di login-->
-<main class="flex-1 flex items-center justify-center py-10 sm:py-16 px-4">
-  <div class="w-full max-w-md fade-up">
+<main class="auth-page flex-1 flex items-center justify-center py-10 sm:py-16 px-4">
+  <div class="auth-card w-full max-w-md fade-up">
 
     <!-- card -->
     <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-avorio-dark">
@@ -72,7 +71,7 @@ include __DIR__ . '/header.php';
       <!-- header card -->
       <div class="bg-antracite px-5 sm:px-8 py-6 sm:py-8 text-center">
         <img 
-          src="<?= SITE_URL ?>/img/logo.png" 
+          src="<?= SITE_URL ?>/img/logo.svg" 
           alt="Logo Museo Storico Severi" 
           class="w-16 h-16 object-contain mx-auto mb-4"
         >
@@ -152,13 +151,15 @@ include __DIR__ . '/header.php';
                      placeholder="••••••••"
                      class="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro transition-colors" />
               <!-- Toggle visibilità password -->
-              <button type="button" id="togglePw"
-                      class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-oro transition-colors"
-                      onclick="document.getElementById('password').type = document.getElementById('password').type === 'password' ? 'text' : 'password'">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
+              <button
+                type="button"
+                id="togglePw"
+                class="absolute inset-y-0 right-0 px-4 text-gray-400 hover:text-oro focus:outline-none transition-colors"
+                onclick="togglePasswordVisibility('password', this)"
+                aria-label="Mostra password"
+                title="Mostra password"
+              >
+                👁️
               </button>
             </div>
           </div>
@@ -199,5 +200,18 @@ include __DIR__ . '/header.php';
     </p>
   </div>
 </main>
+
+<script>
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    button.textContent = isHidden ? '🙈' : '👁️';
+    button.setAttribute('aria-label', isHidden ? 'Nascondi password' : 'Mostra password');
+    button.setAttribute('title', isHidden ? 'Nascondi password' : 'Mostra password');
+}
+</script>
 
 <?php include __DIR__ . '/footer.php'; ?>

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/app_mailer.php';
 
 requireAdmin();
 
@@ -18,18 +19,6 @@ $ruoloLabel = [
     'cassiere' => 'Cassiere',
     'amministratore' => 'Amministratore',
     'tester' => 'Tester'
-];
-$emojiEsposizioni = [
-    '🏛️' => 'Museo storico',
-    '🏺' => 'Civiltà antiche',
-    '⚔️' => 'Battaglie e imperi',
-    '🏰' => 'Medioevo',
-    '🎨' => 'Arte',
-    '🖼️' => 'Galleria',
-    '🗿' => 'Archeologia',
-    '📜' => 'Documenti',
-    '🪙' => 'Reperti',
-    '🌍' => 'Culture'
 ];
 $domandeSicurezza = [
     'primo_animale' => 'Nome del primo animale domestico',
@@ -78,24 +67,6 @@ function contaBigliettiFascia(PDO $pdo, int $idFascia): int {
     return (int)$stmt->fetchColumn();
 }
 
-function esposizioniSupportaEmoji(PDO $pdo): bool {
-    static $supporta = null;
-    if ($supporta !== null) {
-        return $supporta;
-    }
-    try {
-        $stmt = $pdo->query("SHOW COLUMNS FROM Esposizioni LIKE 'emoji'");
-        $supporta = (bool)$stmt->fetch();
-    } catch (Throwable $e) {
-        $supporta = false;
-    }
-    return $supporta;
-}
-
-function normalizzaEmojiEsposizione(string $emoji, array $emojiEsposizioni): string {
-    return array_key_exists($emoji, $emojiEsposizioni) ? $emoji : '🏛️';
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrf($_POST['csrf_token'] ?? '')) {
         $errorMsg = 'Token di sicurezza non valido.';
@@ -108,8 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $dataInizio = $_POST['data_inizio'] ?? '';
                 $dataFine = $_POST['data_fine'] ?? '';
                 $stato = $_POST['stato'] ?? 'Bozza';
-                $emoji = normalizzaEmojiEsposizione((string)($_POST['emoji'] ?? '🏛️'), $emojiEsposizioni);
-                $usaEmoji = esposizioniSupportaEmoji($pdo);
 
                 if ($titolo === '' || !$dataInizio || !$dataFine || !in_array($stato, $stati, true)) {
                     throw new RuntimeException('Compila correttamente tutti i campi dell\'esposizione.');
@@ -119,24 +88,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($action === 'create_esposizione') {
-                    if ($usaEmoji) {
-                        $stmt = $pdo->prepare('INSERT INTO Esposizioni (titolo, descrizione, emoji, data_inizio, data_fine, stato) VALUES (?, ?, ?, ?, ?, ?)');
-                        $stmt->execute([$titolo, $descrizione, $emoji, $dataInizio, $dataFine, $stato]);
-                    } else {
-                        $stmt = $pdo->prepare('INSERT INTO Esposizioni (titolo, descrizione, data_inizio, data_fine, stato) VALUES (?, ?, ?, ?, ?)');
-                        $stmt->execute([$titolo, $descrizione, $dataInizio, $dataFine, $stato]);
-                    }
+                    $stmt = $pdo->prepare('INSERT INTO Esposizioni (titolo, descrizione, data_inizio, data_fine, stato) VALUES (?, ?, ?, ?, ?)');
+                    $stmt->execute([$titolo, $descrizione, $dataInizio, $dataFine, $stato]);
                     $successMsg = 'Esposizione creata correttamente.';
                 } else {
                     $id = (int)($_POST['id_esposizione'] ?? 0);
                     if ($id <= 0) throw new RuntimeException('ID esposizione non valido.');
-                    if ($usaEmoji) {
-                        $stmt = $pdo->prepare('UPDATE Esposizioni SET titolo = ?, descrizione = ?, emoji = ?, data_inizio = ?, data_fine = ?, stato = ? WHERE id_esposizione = ?');
-                        $stmt->execute([$titolo, $descrizione, $emoji, $dataInizio, $dataFine, $stato, $id]);
-                    } else {
-                        $stmt = $pdo->prepare('UPDATE Esposizioni SET titolo = ?, descrizione = ?, data_inizio = ?, data_fine = ?, stato = ? WHERE id_esposizione = ?');
-                        $stmt->execute([$titolo, $descrizione, $dataInizio, $dataFine, $stato, $id]);
-                    }
+                    $stmt = $pdo->prepare('UPDATE Esposizioni SET titolo = ?, descrizione = ?, data_inizio = ?, data_fine = ?, stato = ? WHERE id_esposizione = ?');
+                    $stmt->execute([$titolo, $descrizione, $dataInizio, $dataFine, $stato, $id]);
                     $successMsg = 'Esposizione aggiornata correttamente.';
                 }
             } elseif ($action === 'create_fascia') {
@@ -317,6 +276,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare('DELETE FROM Utenti WHERE id_utente = ?');
                 $stmt->execute([$idUtente]);
                 $successMsg = 'Account eliminato correttamente.';
+            } elseif ($action === 'accetta_rimborso' || $action === 'rifiuta_rimborso') {
+                $idOrdine = (int)($_POST['id_ordine'] ?? 0);
+                if ($idOrdine <= 0) {
+                    throw new RuntimeException('Ordine non valido.');
+                }
+                if (!colonnaEsiste($pdo, 'Ordini', 'richiesta_rimborso') || !colonnaEsiste($pdo, 'Ordini', 'stato_rimborso') || !colonnaEsiste($pdo, 'Ordini', 'motivo_rimborso')) {
+                    throw new RuntimeException('La gestione rimborsi non è attiva: servono le colonne richiesta_rimborso, stato_rimborso e motivo_rimborso nella tabella Ordini.');
+                }
+
+                $stmt = $pdo->prepare("
+                    SELECT o.id_ordine, o.id_utente, o.codice_recupero, o.nome_cliente, o.email_cliente,
+                           o.importo_totale, o.stato_rimborso, u.nome, u.cognome, u.email AS email_utente
+                    FROM Ordini o
+                    LEFT JOIN Utenti u ON u.id_utente = o.id_utente
+                    WHERE o.id_ordine = ?
+                    LIMIT 1
+                ");
+                $stmt->execute([$idOrdine]);
+                $ordineRimborso = $stmt->fetch();
+                if (!$ordineRimborso || ($ordineRimborso['stato_rimborso'] ?? '') !== 'Richiesto') {
+                    throw new RuntimeException('Richiesta di rimborso non trovata o già gestita.');
+                }
+
+                $stmtUsati = $pdo->prepare("SELECT COUNT(*) FROM Biglietti WHERE id_ordine = ? AND stato = 'Utilizzato'");
+                $stmtUsati->execute([$idOrdine]);
+                if ((int)$stmtUsati->fetchColumn() > 0) {
+                    throw new RuntimeException('Questo rimborso non può essere gestito perché uno o più biglietti dell’ordine sono già stati utilizzati.');
+                }
+
+                if ($action === 'accetta_rimborso') {
+                    $pdo->beginTransaction();
+                    try {
+                        $campiRimborso = ["stato_rimborso = 'Accettato'"];
+                        if (colonnaEsiste($pdo, 'Ordini', 'data_esito_rimborso')) {
+                            $campiRimborso[] = 'data_esito_rimborso = NOW()';
+                        }
+                        $stmt = $pdo->prepare('UPDATE Ordini SET ' . implode(', ', $campiRimborso) . ' WHERE id_ordine = ?');
+                        $stmt->execute([$idOrdine]);
+                        if ((int)($ordineRimborso['id_utente'] ?? 0) > 0 && colonnaEsiste($pdo, 'Utenti', 'saldo_utente')) {
+                            $stmt = $pdo->prepare('UPDATE Utenti SET saldo_utente = saldo_utente + ? WHERE id_utente = ?');
+                            $stmt->execute([(float)$ordineRimborso['importo_totale'], (int)$ordineRimborso['id_utente']]);
+                        }
+                        if (colonnaEsiste($pdo, 'Ordini', 'richiesta_rimborso')) {
+                            $stmt = $pdo->prepare('UPDATE Ordini SET richiesta_rimborso = 0 WHERE id_ordine = ?');
+                            $stmt->execute([$idOrdine]);
+                        }
+                        $pdo->commit();
+                        $emailRimborsoInviata = function_exists('inviaEmailEsitoRimborso')
+                            ? inviaEmailEsitoRimborso($ordineRimborso, 'Accettato')
+                            : false;
+                        $successMsg = 'Rimborso accettato e importo riaccreditato sul portafoglio utente.';
+                        $successMsg .= $emailRimborsoInviata
+                            ? ' Email di esito inviata all’utente.'
+                            : ' Attenzione: rimborso gestito, ma email di esito non inviata.';
+                    } catch (Throwable $e) {
+                        if ($pdo->inTransaction()) {
+                            $pdo->rollBack();
+                        }
+                        throw $e;
+                    }
+                } else {
+                    $campiRimborso = ["stato_rimborso = 'Rifiutato'"];
+                    if (colonnaEsiste($pdo, 'Ordini', 'data_esito_rimborso')) {
+                        $campiRimborso[] = 'data_esito_rimborso = NOW()';
+                    }
+                    $stmt = $pdo->prepare('UPDATE Ordini SET ' . implode(', ', $campiRimborso) . ' WHERE id_ordine = ?');
+                    $stmt->execute([$idOrdine]);
+                    if (colonnaEsiste($pdo, 'Ordini', 'richiesta_rimborso')) {
+                        $stmt = $pdo->prepare('UPDATE Ordini SET richiesta_rimborso = 0 WHERE id_ordine = ?');
+                        $stmt->execute([$idOrdine]);
+                    }
+                    $emailRimborsoInviata = function_exists('inviaEmailEsitoRimborso')
+                        ? inviaEmailEsitoRimborso($ordineRimborso, 'Rifiutato')
+                        : false;
+                    $successMsg = 'Rimborso rifiutato.';
+                    $successMsg .= $emailRimborsoInviata
+                        ? ' Email di esito inviata all’utente.'
+                        : ' Attenzione: rimborso gestito, ma email di esito non inviata.';
+                }
             } elseif ($action === 'create_tariffa' || $action === 'update_tariffa') {
                 $tipoBiglietto = $_POST['tipo_biglietto'] ?? '';
                 $idCategoria = (int)($_POST['id_categoria'] ?? 0);
@@ -417,12 +455,39 @@ try {
         ORDER BY f.data ASC, f.ora_ingresso ASC
     ")->fetchAll();
 
+    $rimborsiRichiesti = [];
+    if (colonnaEsiste($pdo, 'Ordini', 'stato_rimborso')) {
+        $whereRimborsi = colonnaEsiste($pdo, 'Ordini', 'richiesta_rimborso')
+            ? "(o.richiesta_rimborso = 1 OR o.stato_rimborso = 'Richiesto')"
+            : "o.stato_rimborso = 'Richiesto'";
+        $rimborsiRichiesti = $pdo->query("
+            SELECT
+                o.id_ordine,
+                o.codice_recupero,
+                o.nome_cliente,
+                o.email_cliente,
+                o.importo_totale,
+                o.motivo_rimborso,
+                o.stato_rimborso,
+                o.data_richiesta_rimborso,
+                u.nome,
+                u.cognome,
+                SUM(CASE WHEN b.stato = 'Utilizzato' THEN 1 ELSE 0 END) AS biglietti_usati
+            FROM Ordini o
+            LEFT JOIN Utenti u ON u.id_utente = o.id_utente
+            LEFT JOIN Biglietti b ON b.id_ordine = o.id_ordine
+            WHERE {$whereRimborsi}
+            GROUP BY o.id_ordine, o.codice_recupero, o.nome_cliente, o.email_cliente, o.importo_totale, o.motivo_rimborso, o.stato_rimborso, o.data_richiesta_rimborso, u.nome, u.cognome
+            ORDER BY o.data_richiesta_rimborso DESC, o.data_acquisto DESC
+        ")->fetchAll();
+    }
+
     $fascePerEsposizione = [];
     foreach ($fasce as $fascia) {
         $fascePerEsposizione[(int)$fascia['id_esposizione']][] = $fascia;
     }
 } catch (Exception $e) {
-    $esposizioni = $categorie = $tariffe = $servizi = $utenti = $fasce = $fascePerEsposizione = [];
+    $esposizioni = $categorie = $tariffe = $servizi = $utenti = $fasce = $fascePerEsposizione = $rimborsiRichiesti = [];
     $errorMsg = $errorMsg ?: 'Errore nel caricamento dei dati amministrativi.';
 }
 
@@ -446,12 +511,12 @@ include __DIR__ . '/header.php';
   </div>
 </section>
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
+<main class="admin-page-main max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
   <?php if ($successMsg): ?>
-    <div class="alert-success floating-alert p-4 rounded text-sm font-body" role="status" data-auto-dismiss="true">✅ <?= clean($successMsg) ?></div>
+    <div class="alert-success floating-alert p-4 rounded text-sm font-body" role="status" data-auto-dismiss="true"> <?= clean($successMsg) ?></div>
   <?php endif; ?>
   <?php if ($errorMsg): ?>
-    <div class="alert-error floating-alert p-4 rounded text-sm font-body" role="alert">⚠️ <?= clean($errorMsg) ?></div>
+    <div class="alert-error floating-alert p-4 rounded text-sm font-body" role="alert"> <?= clean($errorMsg) ?></div>
   <?php endif; ?>
 
   <?php
@@ -461,6 +526,7 @@ include __DIR__ . '/header.php';
       ['href' => '#admin-tariffe', 'label' => 'Tariffe'],
       ['href' => '#admin-servizi', 'label' => 'Servizi'],
       ['href' => '#admin-utenti', 'label' => 'Utenti'],
+      ['href' => '#admin-rimborsi', 'label' => 'Rimborsi'],
     ];
   ?>
 
@@ -490,14 +556,6 @@ include __DIR__ . '/header.php';
         <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
         <input type="hidden" name="action" value="create_esposizione">
         <input type="text" name="titolo" placeholder="Titolo" required class="admin-title-input px-4 py-3 border border-gray-200 rounded-lg text-sm">
-        <div class="admin-emoji-field">
-          <label for="nuova_esposizione_emoji" class="block text-xs font-bold text-gray-500 uppercase mb-1">Emoji</label>
-          <select id="nuova_esposizione_emoji" name="emoji" class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm bg-white admin-emoji-select" aria-label="Emoji esposizione">
-            <?php foreach ($emojiEsposizioni as $emoji => $label): ?>
-              <option value="<?= clean($emoji) ?>"><?= clean($emoji . ' ' . $label) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
         <div class="admin-date-field">
           <label for="nuova_esposizione_data_inizio" class="block text-xs font-bold text-gray-500 uppercase mb-1">Data inizio</label>
           <input type="date" id="nuova_esposizione_data_inizio" name="data_inizio" required class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm">
@@ -547,14 +605,6 @@ include __DIR__ . '/header.php';
             <div class="admin-title-field">
               <label class="text-xs font-bold text-gray-500 uppercase">Titolo</label>
               <input type="text" name="titolo" value="<?= clean($esp['titolo']) ?>" required class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-lg text-sm">
-            </div>
-            <div class="admin-emoji-field">
-              <label class="text-xs font-bold text-gray-500 uppercase">Emoji</label>
-              <select name="emoji" class="w-full mt-1 px-4 py-3 border border-gray-200 rounded-lg text-sm bg-white admin-emoji-select" aria-label="Emoji esposizione">
-                <?php foreach ($emojiEsposizioni as $emoji => $label): ?>
-                  <option value="<?= clean($emoji) ?>" <?= (($esp['emoji'] ?? '🏛️') === $emoji) ? 'selected' : '' ?>><?= clean($emoji . ' ' . $label) ?></option>
-                <?php endforeach; ?>
-              </select>
             </div>
             <div class="admin-date-field">
               <label class="text-xs font-bold text-gray-500 uppercase">Inizio</label>
@@ -952,6 +1002,54 @@ include __DIR__ . '/header.php';
     </div>
   </section>
 
+  <section id="admin-rimborsi" class="scroll-mt-32 bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden mt-8">
+    <div class="bg-antracite px-6 py-5">
+      <p class="text-oro text-xs uppercase tracking-widest font-body mb-1">Gestione</p>
+      <h2 class="font-display text-2xl text-avorio font-bold">Rimborsi richiesti</h2>
+    </div>
+    <div class="p-6 space-y-4 bg-avorio">
+      <?php if (empty($rimborsiRichiesti)): ?>
+        <p class="bg-white border border-avorio-dark rounded-xl p-4 text-sm text-gray-600">Non ci sono richieste di rimborso al momento.</p>
+      <?php else: ?>
+        <?php foreach ($rimborsiRichiesti as $r): ?>
+          <article class="bg-white border border-avorio-dark rounded-xl p-5 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div>
+                <p class="text-xs uppercase tracking-widest text-oro font-bold mb-1">Ordine <?= clean($r['codice_recupero']) ?></p>
+                <h3 class="font-display text-xl font-bold text-antracite"><?= clean(trim(($r['nome'] ?? '') . ' ' . ($r['cognome'] ?? '')) ?: ($r['nome_cliente'] ?? 'Utente')) ?></h3>
+                <p class="text-sm text-gray-600 break-all"><?= clean($r['email_cliente'] ?? '') ?></p>
+                <p class="text-sm text-gray-600 mt-3"><strong>Motivo:</strong> <?= clean($r['motivo_rimborso'] ?? 'Non indicato') ?></p>
+              </div>
+              <div class="md:text-right">
+                <p class="font-display text-2xl text-oro font-bold">€ <?= number_format((float)$r['importo_totale'], 2, ',', '.') ?></p>
+                <p class="text-xs text-gray-600 mt-1">Stato: <strong><?= clean($r['stato_rimborso'] ?? 'Richiesto') ?></strong></p>
+                <?php if ((int)($r['biglietti_usati'] ?? 0) > 0): ?>
+                  <p class="mt-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs p-3 text-left md:text-right">
+                    Rimborso bloccato: uno o più biglietti risultano già utilizzati.
+                  </p>
+                <?php else: ?>
+                  <div class="flex flex-col sm:flex-row gap-2 mt-4 md:justify-end">
+                    <form method="POST" onsubmit="return confirm('Accettare questo rimborso e riaccreditare il portafoglio utente?');">
+                      <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+                      <input type="hidden" name="action" value="accetta_rimborso">
+                      <input type="hidden" name="id_ordine" value="<?= (int)$r['id_ordine'] ?>">
+                      <button type="submit" class="btn-oro px-4 py-2 rounded text-xs uppercase tracking-wide">Accetta</button>
+                    </form>
+                    <form method="POST" onsubmit="return confirm('Rifiutare questo rimborso?');">
+                      <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+                      <input type="hidden" name="action" value="rifiuta_rimborso">
+                      <input type="hidden" name="id_ordine" value="<?= (int)$r['id_ordine'] ?>">
+                      <button type="submit" class="btn-outline px-4 py-2 rounded text-xs uppercase tracking-wide">Rifiuta</button>
+                    </form>
+                  </div>
+                <?php endif; ?>
+              </div>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
+  </section>
 </main>
 
 <script>

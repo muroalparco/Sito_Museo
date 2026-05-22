@@ -97,13 +97,13 @@ include __DIR__ . '/header.php';
     </div>
 </div>
 
-<main class="flex-1 flex items-center justify-center py-16 px-4 bg-avorio">
-    <div class="w-full max-w-lg fade-up">
+<main class="auth-page flex-1 flex items-center justify-center py-16 px-4 bg-avorio">
+    <div class="auth-card w-full max-w-lg fade-up">
         <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-avorio-dark">
 
             <div class="bg-antracite px-8 py-8 text-center">
                 <img
-                    src="<?= SITE_URL ?>/img/logo.png"
+                    src="<?= SITE_URL ?>/img/logo.svg"
                     alt="Logo Museo Storico Severi"
                     class="h-20 w-auto mx-auto mb-4 object-contain"
                 >

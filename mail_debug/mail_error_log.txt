@@ -68,3 +68,474 @@
 [2026-05-14 21:43:47] Tentativo invio a aandolfo355@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
 [2026-05-14 21:43:47] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
 [2026-05-14 21:43:48] mail() OK verso aandolfo355@gmail.com
+[2026-05-14 22:01:23] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:01:44] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:02:28] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:02:28] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-14 22:02:46] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:02:46] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-14 22:03:15] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:03:15] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-14 22:03:16] mail() OK verso sissiogamere89@gmail.com
+[2026-05-14 22:07:53] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:08:58] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:08:58] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-14 22:09:34] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:10:40] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:10:40] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-14 22:17:00] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:18:04] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:18:05] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-14 22:20:25] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:20:25] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-14 22:20:26] mail() OK verso andrea.costabano@gmail.com
+[2026-05-14 22:33:10] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-14 22:34:11] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-14 22:34:11] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-15 08:01:30] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-15 08:01:30] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-15 08:01:31] mail() OK verso sissiogamere89@gmail.com
+[2026-05-15 08:03:08] Tentativo invio a sissiogamere89@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-15 08:04:10] PHPMailer/SMTP FALLITO verso sissiogamere89@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-15 08:04:10] mail() OK con allegati verso sissiogamere89@gmail.com
+[2026-05-15 12:52:25] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-15 12:52:25] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-15 12:52:26] mail() OK verso andrea.costabano@gmail.com
+[2026-05-15 21:55:19] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-15 21:56:22] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-15 21:56:23] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-15 21:56:37] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-15 21:56:37] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-15 21:56:38] mail() OK verso andrea.costabano@gmail.com
+[2026-05-16 22:27:07] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-16 22:28:08] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-16 22:28:08] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 09:29:48] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 09:30:50] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 09:30:51] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 09:35:07] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 09:36:08] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 09:36:08] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 09:36:37] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 09:36:37] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 09:36:37] mail() OK verso andrea.costabano@gmail.com
+[2026-05-18 09:48:27] Tentativo invio a umberto.moccia07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 09:48:27] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 09:48:28] mail() OK verso umberto.moccia07@gmail.com
+[2026-05-18 09:51:04] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 09:51:04] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 09:51:04] mail() OK verso andrea.costabano@gmail.com
+[2026-05-18 10:03:46] Tentativo invio a leonardo.papaleo07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:04:52] PHPMailer/SMTP FALLITO verso leonardo.papaleo07@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 10:04:52] mail() OK con allegati verso leonardo.papaleo07@gmail.com
+[2026-05-18 10:04:56] Tentativo invio a papaleo11494@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:04:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 10:04:57] mail() OK verso papaleo11494@itiseveripadova.edu.it
+[2026-05-18 10:15:05] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:15:05] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 10:15:05] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-18 10:15:23] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:15:23] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 10:15:23] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-18 10:15:43] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:15:43] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 10:15:43] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-18 10:37:18] Tentativo invio a giuliosimoni07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:37:18] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 10:37:18] mail() OK verso giuliosimoni07@gmail.com
+[2026-05-18 10:40:57] Tentativo invio a giuliosimoni07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 10:42:01] PHPMailer/SMTP FALLITO verso giuliosimoni07@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 10:42:01] mail() OK con allegati verso giuliosimoni07@gmail.com
+[2026-05-18 13:39:50] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 13:40:31] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 13:40:31] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 13:40:31] mail() OK verso andrea.costabano@gmail.com
+[2026-05-18 13:40:53] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 13:40:53] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 13:56:50] Tentativo invio a alez50625@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 13:56:50] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 13:56:50] mail() OK verso alez50625@gmail.com
+[2026-05-18 17:28:49] Tentativo invio a micbergh@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 17:28:49] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 17:28:50] mail() OK verso micbergh@gmail.com
+[2026-05-18 19:55:13] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 19:56:17] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 19:56:17] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:03:56] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:03:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-18 20:03:56] mail() OK verso andrea.costabano@gmail.com
+[2026-05-18 20:05:34] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:06:20] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:06:32] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:06:37] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:06:37] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 20:07:25] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:07:26] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 20:07:37] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:07:38] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 20:15:27] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:16:31] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:16:31] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:18:02] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:19:07] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:19:08] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:21:33] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:22:37] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:22:37] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:22:37] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:23:43] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:23:43] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:24:51] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:25:55] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:25:55] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 20:42:29] Tentativo invio a mexivak844@bitmah.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:43:32] PHPMailer/SMTP FALLITO verso mexivak844@bitmah.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:43:33] mail() OK con allegati verso mexivak844@bitmah.com
+[2026-05-18 20:49:56] Tentativo invio a mexivak844@bitmah.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:50:57] PHPMailer/SMTP FALLITO verso mexivak844@bitmah.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:50:57] mail() OK con allegati verso mexivak844@bitmah.com
+[2026-05-18 20:53:33] Tentativo invio a mexivak844@bitmah.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 20:54:34] PHPMailer/SMTP FALLITO verso mexivak844@bitmah.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 20:54:35] mail() OK con allegati verso mexivak844@bitmah.com
+[2026-05-18 20:59:49] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 21:00:52] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 21:00:52] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 21:02:30] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 21:02:39] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 21:03:34] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 21:03:34] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 21:03:40] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 21:03:40] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 22:51:35] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 22:52:37] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 22:52:37] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 22:52:59] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 22:53:58] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 22:54:01] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 22:54:01] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 22:55:01] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 22:55:01] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 22:59:33] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:00:37] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:00:38] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:02:33] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:02:48] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:03:37] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:03:37] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:03:49] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:03:49] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:27:18] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:28:19] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:28:20] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:48:50] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:49:55] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:49:55] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:50:36] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:50:48] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:51:37] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:51:37] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 23:51:49] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:51:49] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-18 23:51:50] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:52:55] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:52:56] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-18 23:53:28] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-18 23:54:31] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-18 23:54:32] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 07:47:07] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 07:48:11] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 07:48:11] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-19 08:05:23] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:05:35] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:06:25] PHPMailer/SMTP FALLITO verso paola.masiello@itiseveri.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:06:26] mail() OK con allegati verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:06:29] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:06:37] PHPMailer/SMTP FALLITO verso paola.masiello@itiseveri.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:06:37] mail() OK con allegati verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:06:42] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:06:42] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 08:06:42] mail() OK verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:06:49] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:06:58] Tentativo invio a paola.masiello@itiseveri.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:07:31] PHPMailer/SMTP FALLITO verso paola.masiello@itiseveri.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:07:31] mail() OK con allegati verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:07:55] PHPMailer/SMTP FALLITO verso paola.masiello@itiseveri.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:07:56] mail() OK con allegati verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:08:01] PHPMailer/SMTP FALLITO verso paola.masiello@itiseveri.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:08:01] mail() OK con allegati verso paola.masiello@itiseveri.edu.it
+[2026-05-19 08:09:18] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:09:23] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:09:39] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:10:19] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:10:19] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:10:25] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:10:25] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:10:43] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:10:43] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:12:26] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:12:26] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 08:12:27] mail() OK verso andrea.costabano@gmail.com
+[2026-05-19 08:19:13] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:19:19] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:19:51] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:20:06] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:20:06] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 08:20:06] mail() OK verso andrea.costabano@gmail.com
+[2026-05-19 08:20:14] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:20:14] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:20:20] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:20:20] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:20:46] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:20:53] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:20:56] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:20:56] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:21:09] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:21:09] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 08:21:09] mail() OK verso andrea.costabano@gmail.com
+[2026-05-19 08:21:50] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:21:50] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:21:56] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:21:56] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 08:25:32] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 08:26:33] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 08:26:34] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 09:02:48] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 09:03:53] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 09:03:54] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-19 09:18:04] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 09:18:17] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 09:18:17] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 09:18:17] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-19 09:19:07] PHPMailer/SMTP FALLITO verso costa11486@itiseveripadova.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 09:19:07] mail() OK con allegati verso costa11486@itiseveripadova.edu.it
+[2026-05-19 10:41:51] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 10:42:04] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 10:42:04] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 10:42:04] mail() OK verso andrea.costabano@gmail.com
+[2026-05-19 10:42:57] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 10:42:57] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 10:44:22] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 10:44:22] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 10:44:23] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-19 12:06:19] Tentativo invio a pavanello.daniel070@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:06:33] Tentativo invio a pavanello.daniel070@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:06:39] Tentativo invio a pavanello.daniel070@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:07:19] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:07:23] PHPMailer/SMTP FALLITO verso pavanello.daniel070@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:07:24] mail() OK con allegati verso pavanello.daniel070@gmail.com
+[2026-05-19 12:07:35] PHPMailer/SMTP FALLITO verso pavanello.daniel070@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:07:35] mail() OK con allegati verso pavanello.daniel070@gmail.com
+[2026-05-19 12:07:41] PHPMailer/SMTP FALLITO verso pavanello.daniel070@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:07:41] mail() OK con allegati verso pavanello.daniel070@gmail.com
+[2026-05-19 12:08:23] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:08:23] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 12:11:50] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:12:01] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:12:54] PHPMailer/SMTP FALLITO verso costa11486@itiseveripadova.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:12:55] mail() OK con allegati verso costa11486@itiseveripadova.edu.it
+[2026-05-19 12:13:06] PHPMailer/SMTP FALLITO verso costa11486@itiseveripadova.edu.it | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:13:07] mail() OK con allegati verso costa11486@itiseveripadova.edu.it
+[2026-05-19 12:15:24] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:15:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 12:15:25] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-19 12:15:58] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:16:39] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:16:39] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 12:16:39] mail() OK verso andrea.costabano@gmail.com
+[2026-05-19 12:17:01] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:17:01] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 12:18:51] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 12:19:55] PHPMailer/SMTP FALLITO verso andrea.costabano@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-19 12:19:56] mail() OK con allegati verso andrea.costabano@gmail.com
+[2026-05-19 13:38:21] Tentativo invio a costa11486@itiseveripadova.edu.it | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-19 13:38:21] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-19 13:38:22] mail() OK verso costa11486@itiseveripadova.edu.it
+[2026-05-20 20:52:36] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 20:52:56] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 20:53:39] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-20 20:53:40] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-20 20:53:57] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-20 20:53:57] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-20 20:54:43] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 20:54:43] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 20:54:44] mail() OK verso muroalparco@gmail.com
+[2026-05-20 21:11:05] Tentativo invio a 213132@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:12:10] PHPMailer/SMTP FALLITO verso 213132@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-20 21:12:10] mail() OK con allegati verso 213132@gmail.com
+[2026-05-20 21:12:44] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:13:02] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:13:46] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-20 21:13:46] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-20 21:14:04] PHPMailer/SMTP FALLITO verso muroalparco@gmail.com | Exception: SMTP Error: Could not connect to SMTP host. | ErrorInfo: SMTP Error: Could not connect to SMTP host.
+[2026-05-20 21:14:05] mail() OK con allegati verso muroalparco@gmail.com
+[2026-05-20 21:22:26] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:22:26] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:22:26] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:22:27] mail() OK verso muroalparco@gmail.com
+[2026-05-20 21:22:42] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:22:42] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:22:42] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:22:42] mail() OK verso muroalparco@gmail.com
+[2026-05-20 21:40:54] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:40:54] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:40:54] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:40:55] mail() OK verso muroalparco@gmail.com
+[2026-05-20 21:41:03] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:41:03] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:41:03] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:41:03] mail() OK verso muroalparco@gmail.com
+[2026-05-20 21:45:16] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:45:16] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:45:16] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:45:17] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 21:45:40] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:45:40] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:45:40] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:45:40] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 21:53:24] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:53:24] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:53:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:53:24] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 21:58:10] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 21:58:10] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 21:58:10] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 21:58:10] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 22:01:07] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 22:01:07] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 22:01:07] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 22:01:07] mail() OK verso muroalparco@gmail.com
+[2026-05-20 22:38:56] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 22:38:56] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 22:38:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 22:38:57] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 22:40:37] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 22:40:37] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 22:40:37] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 22:40:37] mail() OK verso andrea.costabano@gmail.com
+[2026-05-20 22:40:56] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-20 22:40:56] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-20 22:40:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-20 22:40:57] mail() OK verso andrea.costabano@gmail.com
+[2026-05-21 12:23:33] Tentativo invio a pavanello.daniel070@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 12:23:33] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-21 12:23:33] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 12:23:33] mail() OK verso pavanello.daniel070@gmail.com
+[2026-05-21 12:24:24] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 12:24:24] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-21 12:24:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 12:24:25] mail() OK verso andrea.costabano@gmail.com
+[2026-05-21 13:08:57] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 13:08:57] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-21 13:08:57] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 13:08:57] mail() OK verso andrea.costabano@gmail.com
+[2026-05-21 13:09:03] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 13:09:03] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-21 13:09:03] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 13:09:03] mail() OK verso andrea.costabano@gmail.com
+[2026-05-21 13:56:21] Tentativo invio a dunno.122407@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 13:56:21] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 13:56:21] mail() OK verso dunno.122407@gmail.com
+[2026-05-21 13:59:07] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 13:59:07] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 13:59:07] mail() OK verso andrea.costabano@gmail.com
+[2026-05-21 17:26:00] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 17:26:00] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 17:26:00] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-21 20:45:25] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 20:45:25] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 20:45:25] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-21 20:53:24] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 20:53:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 20:53:24] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-21 20:54:30] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 20:54:30] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 20:54:31] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-21 20:59:48] Tentativo invio a piccolodaniel07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 20:59:48] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 20:59:49] mail() OK verso piccolodaniel07@gmail.com
+[2026-05-21 21:00:37] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-21 21:00:37] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-21 21:00:37] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:16:18] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:16:18] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:16:19] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:17:01] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:17:01] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:17:01] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:23:11] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:23:11] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:23:11] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:24:24] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:24:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:24:25] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:24:33] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:24:33] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:24:33] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:32:28] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:32:28] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:32:28] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:32:28] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:34:21] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:34:21] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:34:22] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:46:29] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:46:29] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:46:30] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:46:54] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:46:54] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:46:54] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:47:59] Tentativo invio a karej76089@okcpress.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:47:59] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:48:00] mail() OK verso karej76089@okcpress.com
+[2026-05-22 12:48:20] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:48:20] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:48:20] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:48:44] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:48:44] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:48:44] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:48:45] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:49:09] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:49:09] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:49:10] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:49:24] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:49:24] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:49:24] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:49:25] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:50:14] Tentativo invio a karej76089@okcpress.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:50:14] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:50:14] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:50:15] mail() OK verso karej76089@okcpress.com
+[2026-05-22 12:50:28] Tentativo invio a karej76089@okcpress.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:50:28] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:50:28] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:50:29] mail() OK verso karej76089@okcpress.com
+[2026-05-22 12:50:29] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:50:29] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:50:29] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:50:30] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:50:33] Tentativo invio a karej76089@okcpress.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:50:33] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:50:33] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:50:34] mail() OK verso karej76089@okcpress.com
+[2026-05-22 12:50:56] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:50:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:50:57] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:51:56] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:51:56] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 12:51:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:51:57] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 12:52:17] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:52:17] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:52:18] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:56:45] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:56:45] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:56:46] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:56:51] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:56:51] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:56:52] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:56:53] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:56:53] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:56:53] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 12:58:56] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 12:58:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 12:58:56] mail() OK verso sebastianocatalano670@gmail.com

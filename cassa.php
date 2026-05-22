@@ -16,6 +16,10 @@ $ordine = null;
 $biglietti = [];
 $mailInviata = null;
 
+function cassaOrdineRimborsato(array $ordine): bool {
+    return strcasecmp((string)($ordine['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0;
+}
+
 function cassaCaricaOrdine(PDO $pdo, int $idOrdine): ?array {
     $stmt = $pdo->prepare('SELECT * FROM Ordini WHERE id_ordine = ? LIMIT 1');
     $stmt->execute([$idOrdine]);
@@ -86,8 +90,22 @@ function cassaCodiciBiglietti(array $biglietti): array {
 
 function cassaInviaMailOrdine(array $ordine, array $biglietti): bool {
     $codici = cassaCodiciBiglietti($biglietti);
-    $pdf = creaPdfOrdine($ordine, $codici);
-    return inviaEmailConfermaOrdine($ordine, $codici, $pdf);
+    $pdfContent = creaPdfOrdine($ordine, $codici);
+
+    $tmpBase = tempnam(sys_get_temp_dir(), 'mss_cassa_ordine_');
+    if ($tmpBase === false) {
+        return inviaEmailConfermaOrdine($ordine, $codici, '');
+    }
+
+    $tmpPdf = $tmpBase . '.pdf';
+    @rename($tmpBase, $tmpPdf);
+    file_put_contents($tmpPdf, $pdfContent);
+
+    try {
+        return inviaEmailConfermaOrdine($ordine, $codici, $tmpPdf);
+    } finally {
+        @unlink($tmpPdf);
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'segna_pagato') {
@@ -108,6 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'segna
 
                 if (($ordineDaPagare['stato_pagamento'] ?? '') === 'Annullato') {
                     throw new RuntimeException('Non puoi segnare come pagato un ordine annullato.');
+                }
+                if (cassaOrdineRimborsato($ordineDaPagare)) {
+                    throw new RuntimeException('Questo ordine è stato rimborsato: non è possibile effettuare nuove operazioni.');
                 }
 
                 $stmt = $pdo->prepare("UPDATE Ordini SET stato_pagamento = 'Pagato', metodo_pagamento = 'contanti' WHERE id_ordine = ?");
@@ -164,7 +185,7 @@ include __DIR__ . '/header.php';
   <div class="max-w-6xl mx-auto">
 
     <section class="bg-antracite text-avorio rounded-2xl shadow-xl p-8 md:p-10 mb-8 text-center">
-      <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-24 w-auto object-contain mx-auto mb-6">
+      <img src="<?= SITE_URL ?>/img/logo.svg" alt="Logo Museo Storico Severi" class="h-24 w-auto object-contain mx-auto mb-6">
       <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Area cassiere</p>
       <h1 class="font-display text-3xl md:text-5xl font-bold mb-4">Gestione pagamenti in cassa</h1>
       <p class="text-gray-300 max-w-2xl mx-auto leading-relaxed">
@@ -173,25 +194,38 @@ include __DIR__ . '/header.php';
     </section>
 
     <section class="bg-white rounded-2xl shadow border border-avorio-dark p-6 md:p-8 mb-8">
-      <form method="POST" class="grid md:grid-cols-[1fr_auto] gap-4 items-end">
+      <form method="POST" id="cassaSearchForm" class="grid md:grid-cols-[1fr_auto] gap-4 items-end">
         <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
         <input type="hidden" name="azione" value="cerca">
         <div>
-          <label for="codice" class="block text-sm font-bold text-antracite mb-2">Codice ordine o codice biglietto</label>
+          <label for="codiceCassaInput" class="block text-sm font-bold text-antracite mb-2">Codice ordine o codice biglietto</label>
           <input
             type="text"
-            id="codice"
+            id="codiceCassaInput"
             name="codice"
             value="<?= clean($codiceCercato) ?>"
             placeholder="Es. ORD-ABC12345 oppure TKT-ABC12345"
             required
-            class="w-full px-4 py-3 border border-gray-200 rounded-xl font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro"
+            class="w-full px-4 py-3 border border-gray-200 rounded-xl font-body text-sm uppercase focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro"
           >
         </div>
         <button type="submit" class="btn-oro px-8 py-3 rounded-xl font-body text-sm uppercase tracking-wide">
           Cerca
         </button>
       </form>
+
+      <div class="mt-6 rounded-2xl border border-avorio-dark bg-avorio p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+          <div>
+            <h2 class="font-display text-xl font-bold text-antracite">Scansione QR con fotocamera</h2>
+            <p class="text-sm text-gray-600 mt-1">Inquadra il QR code del biglietto: l’ordine collegato verrà cercato automaticamente.</p>
+          </div>
+          <button type="button" id="startQrScan" class="btn-outline px-5 py-2 rounded text-sm">Apri fotocamera</button>
+            <button type="button" id="stopQrScan" class="hidden btn-outline px-5 py-2 rounded text-sm">Chiudi fotocamera</button>
+        </div>
+        <div id="qrReader" class="hidden w-full max-w-md overflow-hidden rounded-xl border border-avorio-dark bg-white"></div>
+        <p id="qrScanMsg" class="text-xs text-gray-500 mt-3">Se la scansione automatica non funziona, puoi inserire manualmente il codice ticket o il codice ordine.</p>
+      </div>
     </section>
 
     <?php if ($errore): ?>
@@ -209,9 +243,10 @@ include __DIR__ . '/header.php';
     <?php if ($ordine): ?>
       <?php
         $statoPagamento = $ordine['stato_pagamento'] ?? '—';
+        $rimborsato = cassaOrdineRimborsato($ordine);
         $pagato = $statoPagamento === 'Pagato';
         $annullato = $statoPagamento === 'Annullato';
-        $badge = $pagato ? 'bg-green-100 text-green-800' : ($annullato ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-800');
+        $badge = $rimborsato ? 'bg-red-100 text-red-700' : ($pagato ? 'bg-green-100 text-green-800' : ($annullato ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-800'));
       ?>
 
       <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden mb-8">
@@ -233,14 +268,16 @@ include __DIR__ . '/header.php';
 
             <div class="lg:text-right">
               <div class="inline-flex px-4 py-2 rounded-full text-sm font-bold <?= $badge ?> mb-4">
-                <?= clean($statoPagamento) ?>
+                <?= clean($rimborsato ? 'Rimborsato' : $statoPagamento) ?>
               </div>
               <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Totale</p>
               <p class="font-display text-4xl font-bold text-oro mb-5">
                 € <?= number_format((float)($ordine['importo_totale'] ?? 0), 2, ',', '.') ?>
               </p>
 
-              <?php if (!$pagato && !$annullato): ?>
+              <?php if ($rimborsato): ?>
+                <p class="text-red-700 font-bold max-w-xs">Ordine rimborsato: nessuna operazione di cassa disponibile.</p>
+              <?php elseif (!$pagato && !$annullato): ?>
                 <form method="POST" onsubmit="return confirm('Confermi di voler segnare questo ordine come pagato?');">
                   <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
                   <input type="hidden" name="azione" value="segna_pagato">
@@ -285,7 +322,7 @@ include __DIR__ . '/header.php';
               <tbody class="divide-y divide-avorio-dark">
                 <?php foreach ($biglietti as $b): ?>
                   <?php
-                    $statoB = $b['stato'] ?? '—';
+                    $statoB = $rimborsato ? 'Rimborsato' : ($b['stato'] ?? '—');
                     $badgeB = $statoB === 'Valido' ? 'bg-green-100 text-green-800' : ($statoB === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : ($statoB === 'Utilizzato' ? 'bg-gray-100 text-gray-700' : 'bg-red-100 text-red-700'));
                   ?>
                   <tr>
@@ -310,5 +347,115 @@ include __DIR__ . '/header.php';
 
   </div>
 </main>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+(function () {
+  var startBtn = document.getElementById('startQrScan');
+  var stopBtn = document.getElementById('stopQrScan');
+  var reader = document.getElementById('qrReader');
+  var msg = document.getElementById('qrScanMsg');
+  var input = document.getElementById('codiceCassaInput');
+  var form = document.getElementById('cassaSearchForm');
+  var html5QrCode = null;
+  var scannerAttivo = false;
+
+  function estraiCodice(valore) {
+    valore = String(valore || '').trim();
+    try {
+      var url = new URL(valore);
+      valore = url.searchParams.get('codice') || url.searchParams.get('ticket') || url.searchParams.get('ordine') || valore;
+    } catch (e) {}
+    var matchTicket = valore.match(/TKT-[A-Z0-9]{8,20}/i);
+    if (matchTicket) return matchTicket[0].toUpperCase();
+    var matchOrdine = valore.match(/ORD-[A-Z0-9]{6,24}/i);
+    if (matchOrdine) return matchOrdine[0].toUpperCase();
+    return valore.length >= 6 ? valore : '';
+  }
+
+  function impostaStatoScanner(attivo) {
+    scannerAttivo = attivo;
+    if (reader) reader.classList.toggle('hidden', !attivo);
+    if (stopBtn) stopBtn.classList.toggle('hidden', !attivo);
+    if (startBtn) startBtn.classList.toggle('hidden', attivo);
+  }
+
+  function fermaScanner() {
+    if (html5QrCode && scannerAttivo) {
+      html5QrCode.stop().then(function () {
+        html5QrCode.clear();
+        impostaStatoScanner(false);
+      }).catch(function () {
+        impostaStatoScanner(false);
+      });
+    } else {
+      impostaStatoScanner(false);
+    }
+  }
+
+  function codiceTrovato(decodedText) {
+    var codiceLetto = estraiCodice(decodedText);
+    if (!codiceLetto) return;
+    input.value = codiceLetto;
+    msg.textContent = 'Codice letto: ' + codiceLetto;
+    if (html5QrCode && scannerAttivo) {
+      html5QrCode.stop().then(function () {
+        html5QrCode.clear();
+        impostaStatoScanner(false);
+        form.submit();
+      }).catch(function () {
+        form.submit();
+      });
+    } else {
+      form.submit();
+    }
+  }
+
+  function avviaScanner() {
+    if (!window.isSecureContext) {
+      msg.textContent = 'La fotocamera funziona solo con HTTPS. Inserisci il codice manualmente oppure apri la pagina in HTTPS.';
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      msg.textContent = 'Il browser non consente l’accesso alla fotocamera. Controlla i permessi oppure inserisci il codice manualmente.';
+      return;
+    }
+    if (typeof Html5Qrcode === 'undefined') {
+      msg.textContent = 'La libreria per leggere il QR non è stata caricata. Ricarica la pagina oppure inserisci il codice manualmente.';
+      return;
+    }
+
+    msg.textContent = 'Apro la fotocamera... se il browser chiede il permesso, premi Consenti.';
+    impostaStatoScanner(true);
+
+    html5QrCode = new Html5Qrcode('qrReader', { verbose: false });
+    var config = {
+      fps: 10,
+      qrbox: function(viewfinderWidth, viewfinderHeight) {
+        var minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        var size = Math.floor(minEdge * 0.72);
+        return { width: size, height: size };
+      },
+      aspectRatio: 1.333334
+    };
+
+    html5QrCode.start(
+      { facingMode: 'environment' },
+      config,
+      codiceTrovato,
+      function () {}
+    ).then(function () {
+      msg.textContent = 'Scanner attivo: inquadra il QR code del biglietto.';
+    }).catch(function () {
+      impostaStatoScanner(false);
+      msg.textContent = 'Non riesco ad accedere alla fotocamera. Controlla i permessi del browser o inserisci il codice manualmente.';
+    });
+  }
+
+  if (startBtn) startBtn.addEventListener('click', avviaScanner);
+  if (stopBtn) stopBtn.addEventListener('click', fermaScanner);
+  window.addEventListener('pagehide', fermaScanner);
+})();
+</script>
 
 <?php include __DIR__ . '/footer.php'; ?>

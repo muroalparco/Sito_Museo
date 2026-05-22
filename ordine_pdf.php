@@ -91,7 +91,7 @@ class PdfOrdineBuilder {
         }
     }
 
-    public function line(float $x1, float $y1, float $x2, float $y2, string $color = '#C9A84C', float $w = 1): void {
+    public function line(float $x1, float $y1, float $x2, float $y2, string $color = '#8EC5E8', float $w = 1): void {
         $this->raw(pdfColor($color) . " RG\n" . sprintf("%.2F w\n%.2F %.2F m\n%.2F %.2F l\nS\n", $w, $x1, $y1, $x2, $y2));
     }
 
@@ -101,14 +101,14 @@ class PdfOrdineBuilder {
 
     private function header(): void {
         $this->rect(0, 742, self::W, 100, '#2C2C2C');
-        $this->rect(0, 738, self::W, 4, '#C9A84C');
-        $this->text(46, 796, 'MUSEO STORICO SEVERI', 21, 'F2', '#F5F0E8');
-        $this->text(46, 770, 'Riepilogo ordine e biglietti', 12, 'F1', '#C9A84C');
-        $this->text(470, 770, 'Pagina ' . $this->pageNo, 9, 'F1', '#F5F0E8');
+        $this->rect(0, 738, self::W, 4, '#8EC5E8');
+        $this->text(46, 796, 'MUSEO STORICO SEVERI', 21, 'F2', '#F7FBFF');
+        $this->text(46, 770, 'Riepilogo ordine e biglietti', 12, 'F1', '#8EC5E8');
+        $this->text(470, 770, 'Pagina ' . $this->pageNo, 9, 'F1', '#F7FBFF');
     }
 
     private function footer(): void {
-        $this->line(46, 56, 549, 56, '#EAE3D2', 1);
+        $this->line(46, 56, 549, 56, '#EAF4FF', 1);
         $this->text(46, 38, 'Documento generato automaticamente - Museo Storico Severi', 8, 'F1', '#6B6B6B');
         $this->text(420, 38, date('d/m/Y H:i'), 8, 'F1', '#6B6B6B');
     }
@@ -122,7 +122,7 @@ class PdfOrdineBuilder {
     public function title(string $text): void {
         $this->ensure(34);
         $this->text(46, $this->y, $text, 16, 'F2', '#2C2C2C');
-        $this->line(46, $this->y - 10, 549, $this->y - 10, '#C9A84C', 1.2);
+        $this->line(46, $this->y - 10, 549, $this->y - 10, '#8EC5E8', 1.2);
         $this->y -= 34;
     }
 
@@ -146,8 +146,8 @@ class PdfOrdineBuilder {
         $lines = pdfWrapText($message, 78);
         $height = 42 + (count($lines) - 1) * 12;
         $this->ensure($height + 10);
-        $this->rect(46, $this->y - $height + 8, 503, $height, '#FFF8E1', '#C9A84C', 1);
-        $this->text(60, $this->y - 10, $title, 11, 'F2', '#A8822A');
+        $this->rect(46, $this->y - $height + 8, 503, $height, '#FFF8E1', '#8EC5E8', 1);
+        $this->text(60, $this->y - 10, $title, 11, 'F2', '#5FA8D3');
         $yy = $this->y - 27;
         foreach ($lines as $line) {
             $this->text(60, $yy, $line, 9, 'F1', '#4A4A4A');
@@ -159,10 +159,16 @@ class PdfOrdineBuilder {
     public function ticketRow(int $numero, string $codice, string $stato): void {
         $this->ensure(34);
         $rowTop = $this->y + 9;
-        $this->rect(46, $this->y - 13, 503, 28, '#FFFFFF', '#EAE3D2', 0.8);
+        $this->rect(46, $this->y - 13, 503, 28, '#FFFFFF', '#EAF4FF', 0.8);
         $this->text(58, $this->y, (string)$numero, 9, 'F2', '#6B6B6B');
         $this->text(95, $this->y, $codice, 10, 'F3', '#2C2C2C');
-        $statoColor = strtolower($stato) === 'non pagato' ? '#A8822A' : '#166534';
+        if (strtolower($stato) === 'non pagato') {
+            $statoColor = '#5FA8D3';
+        } elseif (strtolower($stato) === 'rimborsato') {
+            $statoColor = '#B91C1C';
+        } else {
+            $statoColor = '#166534';
+        }
         $this->text(455, $this->y, strtoupper($stato), 8, 'F2', $statoColor);
         $this->y -= 34;
     }
@@ -229,8 +235,9 @@ function creaPdfOrdine(array $ordine, array $codiciBiglietti): string {
     $nomeCliente = (string)($ordine['nome_cliente'] ?? 'Visitatore');
     $emailCliente = (string)($ordine['email_cliente'] ?? '-');
     $metodo = ucfirst((string)($ordine['metodo_pagamento'] ?? 'Non indicato'));
-    $stato = (string)($ordine['stato_pagamento'] ?? 'Pagato');
-    $statoBiglietto = strcasecmp($stato, 'Non pagato') === 0 ? 'Non pagato' : 'Valido';
+    $ordineRimborsato = strcasecmp((string)($ordine['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0;
+    $stato = $ordineRimborsato ? 'Rimborsato' : (string)($ordine['stato_pagamento'] ?? 'Pagato');
+    $statoBiglietto = $ordineRimborsato ? 'Rimborsato' : (strcasecmp($stato, 'Non pagato') === 0 ? 'Non pagato' : 'Valido');
     $totale = 'EUR ' . number_format((float)($ordine['importo_totale'] ?? 0), 2, ',', '.');
     $percorso = (string)($ordine['titolo_percorso'] ?? ($ordine['tipo'] ?? 'Museo Storico Severi'));
     $dataValidita = (string)($ordine['data_validita'] ?? '');
@@ -267,7 +274,12 @@ function creaPdfOrdine(array $ordine, array $codiciBiglietti): string {
         $pdf->keyValue('Docenti accompagnatori', $docenti);
     }
 
-    if (strcasecmp($stato, 'Non pagato') === 0) {
+    if ($ordineRimborsato) {
+        $pdf->warning(
+            'Ordine rimborsato',
+            "Il rimborso di questo ordine e stato accettato. I biglietti restano nello storico, ma non sono piu utilizzabili ne validabili all'ingresso."
+        );
+    } elseif (strcasecmp($stato, 'Non pagato') === 0) {
         $pdf->warning(
             'Pagamento in cassa da completare',
             "L'ordine e stato registrato, ma i biglietti non sono ancora validi. Per renderli validi occorre saldare il pagamento alla cassa del museo."

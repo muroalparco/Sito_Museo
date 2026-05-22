@@ -20,8 +20,12 @@ if ($codice === '') {
 
         if (!$ordine) {
             $errore = 'Codice ordine non trovato.';
+        } elseif (!ordineAutorizzato($pdo, $ordine)) {
+            $errore = 'Non sei autorizzato a visualizzare questo ordine. Accedi con l’account corretto oppure recupera l’ordine inserendo codice ed email.';
+            $ordine = null;
         } else {
-            $stmtB = $pdo->prepare("\n                SELECT\n                    b.*,\n                    cr.nome AS categoria,\n                    f.data AS data_fascia,\n                    f.ora_ingresso,\n                    e.titolo AS esposizione,\n                    GROUP_CONCAT(CONCAT(so.nome, ' (€ ', FORMAT(bs.prezzo_snapshot, 2), ')') SEPARATOR ', ') AS servizi\n                FROM Biglietti b\n                LEFT JOIN Categorie_Riduzione cr ON cr.id_categoria = b.id_categoria\n                LEFT JOIN Fasce_Orarie f ON f.id_fascia = b.id_fascia\n                LEFT JOIN Esposizioni e ON e.id_esposizione = f.id_esposizione\n                LEFT JOIN Biglietti_Servizi bs ON bs.id_biglietto = b.id_biglietto\n                LEFT JOIN Servizi_Opzionali so ON so.id_servizio = bs.id_servizio\n                WHERE b.id_ordine = ?\n                GROUP BY b.id_biglietto\n                ORDER BY b.id_biglietto ASC\n            ");
+            $stmtB = $pdo->prepare("\n                SELECT\n                    b.*,\n                    cr.nome AS categoria,\n                    f.data AS data_fascia,\n                    f.ora_ingresso,\n                    e.titolo AS esposizione,\n                    GROUP_CONCAT(CONCAT(so.nome, ' (€ ', FORMAT(bs.prezzo_snapshot, 2), ')') SEPARATOR ', ') AS servizi,
+                    COALESCE(SUM(bs.prezzo_snapshot), 0) AS totale_servizi\n                FROM Biglietti b\n                LEFT JOIN Categorie_Riduzione cr ON cr.id_categoria = b.id_categoria\n                LEFT JOIN Fasce_Orarie f ON f.id_fascia = b.id_fascia\n                LEFT JOIN Esposizioni e ON e.id_esposizione = f.id_esposizione\n                LEFT JOIN Biglietti_Servizi bs ON bs.id_biglietto = b.id_biglietto\n                LEFT JOIN Servizi_Opzionali so ON so.id_servizio = bs.id_servizio\n                WHERE b.id_ordine = ?\n                GROUP BY b.id_biglietto\n                ORDER BY b.id_biglietto ASC\n            ");
             $stmtB->execute([(int)$ordine['id_ordine']]);
             $biglietti = $stmtB->fetchAll();
         }
@@ -36,6 +40,7 @@ $isOrdineClasse = $ordine && (
     !empty($ordine['nome_scuola']) ||
     !empty($ordine['numero_docenti'])
 );
+$ordineRimborsato = $ordine && strcasecmp((string)($ordine['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0;
 
 $pdfFilename = $ordine
     ? 'biglietti_' . preg_replace('/[^A-Z0-9_-]/i', '', $ordine['codice_recupero']) . '.pdf'
@@ -61,8 +66,43 @@ include __DIR__ . '/header.php';
     page-break-inside: avoid;
   }
 
+  .ticket-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ticket-card__identity {
+    min-width: 0;
+  }
+
+  .ticket-card__code {
+    overflow-wrap: anywhere;
+  }
+
+  .ticket-card__qr {
+    width: 8.75rem;
+    height: 8.75rem;
+    flex: 0 0 8.75rem;
+    box-sizing: border-box;
+    image-rendering: pixelated;
+  }
+
   .pdf-page-break {
     display: none;
+  }
+
+  @media (max-width: 640px) {
+    .ticket-card__header {
+      flex-direction: column;
+    }
+
+    .ticket-card__qr {
+      width: 10rem;
+      height: 10rem;
+      flex-basis: 10rem;
+    }
   }
 
   @media print {
@@ -87,9 +127,9 @@ include __DIR__ . '/header.php';
 <main id="biglietti-pdf-area" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
   <?php if ($errore): ?>
     <div class="bg-white rounded-2xl shadow border border-avorio-dark p-8 text-center">
-      <div class="text-5xl mb-4">🔎</div>
+      <div class="text-5xl mb-4"></div>
       <h1 class="font-display text-3xl font-bold text-antracite mb-4">Ordine non trovato</h1>
-      <div class="alert-error p-4 rounded text-sm mb-6 text-left">⚠️ <?= clean($errore) ?></div>
+      <div class="alert-error p-4 rounded text-sm mb-6 text-left"> <?= clean($errore) ?></div>
       <a href="<?= SITE_URL ?>/recupera_ordine.php" class="btn-outline px-6 py-3 rounded inline-block">Riprova</a>
     </div>
   <?php else: ?>
@@ -141,7 +181,7 @@ include __DIR__ . '/header.php';
         <div class="ticket-page grid md:grid-cols-2 gap-6">
           <?php foreach ($bigliettiPagina as $b): ?>
             <?php
-              $totaleTicket = (float)$b['prezzo_lordo'] - (float)$b['sconto_applicato'];
+              $totaleTicket = (float)$b['prezzo_lordo'] - (float)$b['sconto_applicato'] + (float)($b['totale_servizi'] ?? 0);
               $categoriaBiglietto = $b['categoria'] ?? '';
               if ($isOrdineClasse && $categoriaBiglietto === '' && (float)$b['prezzo_lordo'] == 0.0 && (float)$b['sconto_applicato'] == 0.0) {
                   $categoriaBiglietto = 'Docente accompagnatore';
@@ -150,17 +190,29 @@ include __DIR__ . '/header.php';
             <article class="ticket-card bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden break-inside-avoid">
               <div class="h-2 bg-oro"></div>
               <div class="p-6">
-                <div class="flex items-start justify-between gap-4 mb-5">
-                  <div>
+                <div class="ticket-card__header mb-5">
+                  <div class="ticket-card__identity">
                     <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Codice biglietto</p>
-                    <h2 class="font-display text-2xl font-bold text-antracite"><?= clean($b['codice_univoco']) ?></h2>
-                  </div>
+                    <h2 class="ticket-card__code font-display text-2xl font-bold text-antracite mb-3"><?= clean($b['codice_univoco']) ?></h2>
                   <?php
-                    $ticketBadge = $b['stato'] === 'Valido' ? 'bg-green-100 text-green-800' : ($b['stato'] === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-600');
+                    $statoVisuale = $ordineRimborsato ? 'Rimborsato' : $b['stato'];
+                    $ticketBadge = $statoVisuale === 'Valido'
+                        ? 'bg-green-100 text-green-800'
+                        : ($statoVisuale === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : ($statoVisuale === 'Rimborsato' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'));
                   ?>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold <?= $ticketBadge ?>">
-                    <?= clean($b['stato']) ?>
-                  </span>
+                    <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold <?= $ticketBadge ?>">
+                      <?= clean($statoVisuale) ?>
+                    </span>
+                  </div>
+                  <?php if ($ordineRimborsato): ?>
+                    <div class="ticket-card__qr rounded-xl border border-red-200 bg-red-50 text-red-700 p-4 flex items-center justify-center text-center text-xs font-bold">
+                      Biglietto rimborsato<br>non utilizzabile
+                    </div>
+                  <?php else: ?>
+                    <a href="<?= SITE_URL ?>/ticket.php?codice=<?= urlencode($b['codice_univoco']) ?>" class="block" aria-label="Apri biglietto digitale <?= clean($b['codice_univoco']) ?>">
+                      <img src="<?= SITE_URL ?>/ticket_qr.php?codice=<?= urlencode($b['codice_univoco']) ?>" width="160" height="160" alt="QR code biglietto <?= clean($b['codice_univoco']) ?>" class="ticket-card__qr rounded-xl border border-avorio-dark p-2 bg-white">
+                    </a>
+                  <?php endif; ?>
                 </div>
 
                 <div class="space-y-3 text-sm text-gray-600">
@@ -172,7 +224,7 @@ include __DIR__ . '/header.php';
                 </div>
 
                 <div class="mt-6 pt-5 border-t border-avorio-dark flex items-center justify-between">
-                  <span class="text-xs text-gray-500">Presenta questo codice all'ingresso</span>
+                  <span class="text-xs text-gray-500"><?= $ordineRimborsato ? 'Biglietto rimborsato: non presentare all’ingresso' : "Presenta questo codice all'ingresso" ?></span>
                   <span class="font-display text-xl font-bold text-oro">€ <?= number_format($totaleTicket, 2, ',', '.') ?></span>
                 </div>
               </div>

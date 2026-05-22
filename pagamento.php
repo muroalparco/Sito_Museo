@@ -8,6 +8,8 @@ $pdo = getDB();
 $errore = '';
 $ordine = null;
 $formPagamento = null;
+$formRicaricaPortafoglio = null;
+$ricaricaPortafoglioCompletata = null;
 $pagamentoOrdineEsistente = null;
 $errorePagamento = '';
 $bigliettiCreati = [];
@@ -32,12 +34,38 @@ function generaCodiceBiglietto(PDO $pdo): string {
 }
 
 function colonnaEsiste(PDO $pdo, string $tabella, string $colonna): bool {
+    if (function_exists('dbColumnExists')) {
+        return dbColumnExists($pdo, $tabella, $colonna);
+    }
+
     try {
         $stmt = $pdo->prepare("SHOW COLUMNS FROM `$tabella` LIKE ?");
         $stmt->execute([$colonna]);
         return (bool)$stmt->fetch();
     } catch (Throwable $e) {
         return false;
+    }
+}
+
+function preparaSupportoPagamentoSaldo(PDO $pdo): void {
+    preparaPortafoglioUtente($pdo);
+
+    if ($pdo->inTransaction()) {
+        return;
+    }
+
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM Ordini LIKE 'metodo_pagamento'");
+        $colonna = $stmt->fetch();
+        $tipo = strtolower((string)($colonna['Type'] ?? ''));
+
+        if ($colonna && strpos($tipo, "'saldo'") === false) {
+            $pdo->exec("ALTER TABLE Ordini MODIFY metodo_pagamento ENUM('contanti','carta','paypal','saldo') NOT NULL DEFAULT 'carta'");
+        } elseif (!$colonna) {
+            $pdo->exec("ALTER TABLE Ordini ADD COLUMN metodo_pagamento ENUM('contanti','carta','paypal','saldo') NOT NULL DEFAULT 'carta'");
+        }
+    } catch (Throwable $e) {
+        // Se l'hosting non permette ALTER, il salvataggio dell'ordine mostrera l'errore reale.
     }
 }
 
@@ -67,20 +95,21 @@ function preparaOrdine(PDO $pdo, array $dati): array {
     $tipo = $dati['tipo'] ?? '';
     $nomeCliente = trim($dati['nome_cliente'] ?? '');
     $emailCliente = trim($dati['email_cliente'] ?? '');
-    $idTariffa = (int)($dati['id_tariffa'] ?? 0);
     $prenotazioneDocente = ($dati['prenotazione_docente'] ?? '') === '1';
     $metodoPagamento = $dati['metodo_pagamento'] ?? 'carta';
 
-    if (!in_array($metodoPagamento, ['contanti', 'carta', 'paypal'], true)) {
+    if (!in_array($metodoPagamento, ['contanti', 'carta', 'paypal', 'saldo'], true)) {
         throw new RuntimeException('Metodo di pagamento non valido.');
     }
-
-    $quantitaRichiesta = (int)($dati['quantita'] ?? 1);
-    $quantitaStudenti = $prenotazioneDocente
-        ? max(1, (int)($dati['quantita_studenti'] ?? $quantitaRichiesta))
-        : max(1, min(20, $quantitaRichiesta));
-    $numeroDocenti = $prenotazioneDocente ? max(0, (int)($dati['numero_docenti'] ?? 0)) : 0;
-    $quantita = $prenotazioneDocente ? ($quantitaStudenti + $numeroDocenti) : $quantitaStudenti;
+    if ($metodoPagamento === 'saldo' && !isLogged()) {
+        throw new RuntimeException('Il pagamento con saldo richiede il login.');
+    }
+    if (!in_array($tipo, ['base', 'esposizione'], true)) {
+        throw new RuntimeException('Tipo biglietto non valido.');
+    }
+    if ($nomeCliente === '' || !filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) {
+        throw new RuntimeException('Inserisci nome, cognome ed email validi.');
+    }
 
     $nomeScuola = trim($dati['nome_scuola'] ?? '');
     $codiceMeccanografico = strtoupper(trim($dati['codice_meccanografico'] ?? ''));
@@ -90,38 +119,49 @@ function preparaOrdine(PDO $pdo, array $dati): array {
     $classeScuola = trim($dati['classe_scuola'] ?? '');
     $noteScuola = trim($dati['note_scuola'] ?? '');
 
-    $serviziIds = array_values(array_unique(array_map('intval', $dati['servizi'] ?? [])));
-
-    if (!in_array($tipo, ['base', 'esposizione'], true)) {
-        throw new RuntimeException('Tipo biglietto non valido.');
-    }
-    if ($nomeCliente === '' || !filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) {
-        throw new RuntimeException('Inserisci nome, cognome ed email validi.');
-    }
     if ($prenotazioneDocente && ($nomeScuola === '' || $cittaScuola === '' || $classeScuola === '')) {
         throw new RuntimeException('Inserisci almeno nome scuola, città e classe/sezione.');
     }
-    if ($idTariffa <= 0) {
-        throw new RuntimeException('Seleziona una tariffa valida.');
+
+    $serviziIds = array_values(array_unique(array_map('intval', $dati['servizi'] ?? [])));
+
+    $idTariffa = (int)($dati['id_tariffa'] ?? 0);
+    $tariffaQuantitaRaw = $dati['tariffa_quantita'] ?? [];
+    if (!is_array($tariffaQuantitaRaw)) {
+        $tariffaQuantitaRaw = [];
     }
 
-    $stmtTariffa = $pdo->prepare(" 
-        SELECT t.*, cr.nome AS categoria, cr.percentuale_sconto
-        FROM Tariffe t
-        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria
-        WHERE t.id_tariffa = ? AND t.tipo_biglietto = ?
-        LIMIT 1
-    ");
-    $stmtTariffa->execute([$idTariffa, $tipo]);
-    $tariffa = $stmtTariffa->fetch();
-
-    if (!$tariffa) {
-        throw new RuntimeException('Tariffa non valida per il biglietto selezionato.');
+    $richiesteTariffe = [];
+    foreach ($tariffaQuantitaRaw as $id => $qta) {
+        $id = (int)$id;
+        $qta = (int)$qta;
+        if ($id > 0 && $qta > 0) {
+            $richiesteTariffe[$id] = min(50, $qta);
+        }
     }
 
-    if (strcasecmp(trim((string)$tariffa['categoria']), 'Docente accompagnatore') === 0) {
-        throw new RuntimeException('La tariffa docente accompagnatore è riservata alla prenotazione classe e viene gestita automaticamente.');
+    if (empty($richiesteTariffe)) {
+        $quantitaRichiesta = (int)($dati['quantita'] ?? 1);
+        $quantitaStudenti = $prenotazioneDocente
+            ? max(1, (int)($dati['quantita_studenti'] ?? $quantitaRichiesta))
+            : max(1, min(20, $quantitaRichiesta));
+        if ($idTariffa <= 0) {
+            throw new RuntimeException('Seleziona almeno una categoria di biglietto.');
+        }
+        $richiesteTariffe = [$idTariffa => $quantitaStudenti];
+    } else {
+        $quantitaStudenti = array_sum($richiesteTariffe);
+        if ($quantitaStudenti <= 0) {
+            throw new RuntimeException('Seleziona almeno un biglietto.');
+        }
+        if ($quantitaStudenti > 120) {
+            throw new RuntimeException('Puoi acquistare al massimo 120 biglietti per ordine classe.');
+        }
+        $idTariffa = (int)array_key_first($richiesteTariffe);
     }
+
+    $numeroDocenti = $prenotazioneDocente ? max(0, (int)($dati['numero_docenti'] ?? 0)) : 0;
+    $quantita = $quantitaStudenti + $numeroDocenti;
 
     $stmtPrezzoIntero = $pdo->prepare(" 
         SELECT t.prezzo
@@ -137,11 +177,47 @@ function preparaOrdine(PDO $pdo, array $dati): array {
         $stmtMax->execute([$tipo]);
         $prezzoIntero = $stmtMax->fetchColumn();
     }
+    $prezzoLordoDefault = (float)$prezzoIntero;
 
-    $prezzoLordo = (float)$prezzoIntero;
-    $prezzoFinale = (float)$tariffa['prezzo'];
-    $scontoApplicato = max(0, $prezzoLordo - $prezzoFinale);
-    $idCategoria = (int)$tariffa['id_categoria'];
+    $tariffaItems = [];
+    $idsTariffe = array_keys($richiesteTariffe);
+    $placeholdersTariffe = implode(',', array_fill(0, count($idsTariffe), '?'));
+    $stmtTariffe = $pdo->prepare(" 
+        SELECT t.*, cr.nome AS categoria, cr.percentuale_sconto
+        FROM Tariffe t
+        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria
+        WHERE t.id_tariffa IN ($placeholdersTariffe) AND t.tipo_biglietto = ?
+    ");
+    $stmtTariffe->execute(array_merge($idsTariffe, [$tipo]));
+    $tariffeDb = [];
+    foreach ($stmtTariffe->fetchAll() as $rigaTariffa) {
+        $tariffeDb[(int)$rigaTariffa['id_tariffa']] = $rigaTariffa;
+    }
+
+    foreach ($richiesteTariffe as $idT => $qta) {
+        if (!isset($tariffeDb[$idT])) {
+            throw new RuntimeException('Una delle tariffe selezionate non è valida.');
+        }
+        $tariffa = $tariffeDb[$idT];
+        if (strcasecmp(trim((string)$tariffa['categoria']), 'Docente accompagnatore') === 0) {
+            throw new RuntimeException('La tariffa docente accompagnatore è riservata alla prenotazione classe e viene gestita automaticamente.');
+        }
+        $prezzoFinaleItem = (float)$tariffa['prezzo'];
+        $tariffaItems[] = [
+            'id_tariffa' => (int)$tariffa['id_tariffa'],
+            'id_categoria' => (int)$tariffa['id_categoria'],
+            'categoria' => (string)$tariffa['categoria'],
+            'quantita' => (int)$qta,
+            'prezzoLordo' => $prezzoLordoDefault,
+            'prezzoFinale' => $prezzoFinaleItem,
+            'scontoApplicato' => max(0, $prezzoLordoDefault - $prezzoFinaleItem),
+        ];
+    }
+
+    $idCategoria = (int)$tariffaItems[0]['id_categoria'];
+    $prezzoLordo = (float)$tariffaItems[0]['prezzoLordo'];
+    $prezzoFinale = (float)$tariffaItems[0]['prezzoFinale'];
+    $scontoApplicato = (float)$tariffaItems[0]['scontoApplicato'];
     $idCategoriaDocente = idCategoriaDocente($pdo);
     $idFascia = null;
     $dataValidita = null;
@@ -192,7 +268,10 @@ function preparaOrdine(PDO $pdo, array $dati): array {
     }
 
     $totaleServiziSingolo = array_reduce($servizi, fn($sum, $s) => $sum + (float)$s['prezzo'], 0.0);
-    $totaleStudenti = ($prezzoFinale + $totaleServiziSingolo) * $quantitaStudenti;
+    $totaleStudenti = 0.0;
+    foreach ($tariffaItems as $item) {
+        $totaleStudenti += ((float)$item['prezzoFinale'] + $totaleServiziSingolo) * (int)$item['quantita'];
+    }
     $totaleDocenti = $prenotazioneDocente ? ($totaleServiziSingolo * $numeroDocenti) : 0.0;
     $totale = $totaleStudenti + $totaleDocenti;
 
@@ -201,7 +280,7 @@ function preparaOrdine(PDO $pdo, array $dati): array {
         'quantitaStudenti', 'numeroDocenti', 'quantita', 'nomeScuola', 'codiceMeccanografico',
         'indirizzoScuola', 'cittaScuola', 'telefonoScuola', 'classeScuola', 'noteScuola',
         'servizi', 'prezzoLordo', 'prezzoFinale', 'scontoApplicato', 'idCategoria', 'idCategoriaDocente',
-        'idFascia', 'dataValidita', 'totale', 'titoloPercorso'
+        'idFascia', 'dataValidita', 'totale', 'titoloPercorso', 'tariffaItems'
     );
 }
 
@@ -209,8 +288,21 @@ function creaOrdineConBiglietti(PDO $pdo, array $datiOrdine, string $statoPagame
     $codiceRecupero = generaCodiceOrdine($pdo);
     $idUtente = isLogged() ? (int)$_SESSION['utente_id'] : null;
 
+    if (($datiOrdine['metodoPagamento'] ?? '') === 'saldo' && $statoPagamento === 'Pagato') {
+        if ($idUtente === null) {
+            throw new RuntimeException('Il pagamento con saldo richiede il login.');
+        }
+        preparaSupportoPagamentoSaldo($pdo);
+    }
+
     $pdo->beginTransaction();
     try {
+        if (($datiOrdine['metodoPagamento'] ?? '') === 'saldo' && $statoPagamento === 'Pagato') {
+            if ($idUtente === null) {
+                throw new RuntimeException('Il pagamento con saldo richiede il login.');
+            }
+            addebitaSaldoUtente($pdo, (int)$idUtente, (float)$datiOrdine['totale']);
+        }
         $campiOrdine = ['id_utente', 'codice_recupero', 'nome_cliente', 'email_cliente', 'importo_totale', 'stato_pagamento'];
         $valoriOrdine = [$idUtente, $codiceRecupero, $datiOrdine['nomeCliente'], $datiOrdine['emailCliente'], $datiOrdine['totale'], $statoPagamento];
 
@@ -256,24 +348,33 @@ function creaOrdineConBiglietti(PDO $pdo, array $datiOrdine, string $statoPagame
         ");
 
         $codici = [];
-        for ($i = 0; $i < $datiOrdine['quantitaStudenti']; $i++) {
-            $codiceBiglietto = generaCodiceBiglietto($pdo);
-            $stmtBiglietto->execute([
-                $codiceBiglietto,
-                $idOrdine,
-                $datiOrdine['tipo'],
-                $datiOrdine['dataValidita'],
-                $datiOrdine['idFascia'],
-                $datiOrdine['idCategoria'],
-                $datiOrdine['prezzoLordo'],
-                $datiOrdine['scontoApplicato'],
-                $statoBiglietto
-            ]);
-            $idBiglietto = (int)$pdo->lastInsertId();
-            foreach ($datiOrdine['servizi'] as $servizio) {
-                $stmtBS->execute([$idBiglietto, (int)$servizio['id_servizio'], (float)$servizio['prezzo']]);
+        $tariffaItems = $datiOrdine['tariffaItems'] ?? [[
+            'quantita' => $datiOrdine['quantitaStudenti'],
+            'id_categoria' => $datiOrdine['idCategoria'],
+            'prezzoLordo' => $datiOrdine['prezzoLordo'],
+            'scontoApplicato' => $datiOrdine['scontoApplicato'],
+        ]];
+
+        foreach ($tariffaItems as $item) {
+            for ($i = 0; $i < (int)$item['quantita']; $i++) {
+                $codiceBiglietto = generaCodiceBiglietto($pdo);
+                $stmtBiglietto->execute([
+                    $codiceBiglietto,
+                    $idOrdine,
+                    $datiOrdine['tipo'],
+                    $datiOrdine['dataValidita'],
+                    $datiOrdine['idFascia'],
+                    (int)$item['id_categoria'],
+                    (float)$item['prezzoLordo'],
+                    (float)$item['scontoApplicato'],
+                    $statoBiglietto
+                ]);
+                $idBiglietto = (int)$pdo->lastInsertId();
+                foreach ($datiOrdine['servizi'] as $servizio) {
+                    $stmtBS->execute([$idBiglietto, (int)$servizio['id_servizio'], (float)$servizio['prezzo']]);
+                }
+                $codici[] = $codiceBiglietto;
             }
-            $codici[] = $codiceBiglietto;
         }
 
         for ($i = 0; $i < $datiOrdine['numeroDocenti']; $i++) {
@@ -390,9 +491,68 @@ function validaPagamentoSimulato(string $metodo, array $input): void {
         if (!filter_var($paypalEmail, FILTER_VALIDATE_EMAIL)) {
             throw new RuntimeException('Inserisci un indirizzo email PayPal valido. Puoi correggerlo oppure generare l’ordine come non pagato.');
         }
+    } elseif ($metodo === 'saldo' || $metodo === 'contanti') {
+        return;
     } else {
         throw new RuntimeException('Metodo di pagamento non valido.');
     }
+}
+
+function normalizzaImportoRicarica($valore): float {
+    $importo = round((float)str_replace(',', '.', (string)$valore), 2);
+    if ($importo < 1 || $importo > 500) {
+        throw new RuntimeException('Inserisci un importo di ricarica valido tra 1 e 500 euro.');
+    }
+    return $importo;
+}
+
+function validaMetodoRicarica(string $metodo): string {
+    $metodo = strtolower(trim($metodo));
+    if (!in_array($metodo, ['carta', 'paypal'], true)) {
+        throw new RuntimeException('Per la ricarica puoi scegliere solo carta di credito o PayPal.');
+    }
+    return $metodo;
+}
+
+function creaPayloadRicaricaPortafoglio(float $importo, string $metodo): string {
+    return base64_encode(json_encode([
+        'tipo' => 'ricarica_portafoglio',
+        'importo' => number_format($importo, 2, '.', ''),
+        'metodo' => $metodo,
+    ], JSON_UNESCAPED_UNICODE));
+}
+
+function leggiPayloadRicaricaPortafoglio(string $payload): array {
+    $json = base64_decode($payload, true);
+    if ($json === false) {
+        throw new RuntimeException('Dati ricarica non validi.');
+    }
+    $dati = json_decode($json, true);
+    if (!is_array($dati) || ($dati['tipo'] ?? '') !== 'ricarica_portafoglio') {
+        throw new RuntimeException('Dati ricarica non validi.');
+    }
+    $importo = normalizzaImportoRicarica($dati['importo'] ?? 0);
+    $metodo = validaMetodoRicarica((string)($dati['metodo'] ?? ''));
+    return ['importo' => $importo, 'metodo' => $metodo];
+}
+
+function creaFormRicaricaPortafoglio(float $importo, string $metodo): array {
+    return [
+        'importo' => $importo,
+        'metodo' => $metodo,
+        'payload' => creaPayloadRicaricaPortafoglio($importo, $metodo),
+    ];
+}
+
+function completaRicaricaPortafoglio(PDO $pdo, float $importo): array {
+    if (!isLogged()) {
+        throw new RuntimeException('La ricarica del portafoglio richiede il login.');
+    }
+    ricaricaSaldoUtente($pdo, (int)$_SESSION['utente_id'], $importo);
+    return [
+        'importo' => $importo,
+        'saldo' => saldoUtenteCorrente($pdo, (int)$_SESSION['utente_id']),
+    ];
 }
 
 function creaFormPagamentoDaDati(array $dati, array $datiOrdine): array {
@@ -435,9 +595,35 @@ function caricaOrdineUtenteDaPagare(PDO $pdo, int $idOrdine): ?array {
     return $ordine ?: null;
 }
 
-function marcaOrdinePagato(PDO $pdo, int $idOrdine, string $metodo): void {
+function marcaOrdinePagato(PDO $pdo, array $ordineDaPagare, string $metodo): void {
+    $idOrdine = (int)($ordineDaPagare['id_ordine'] ?? 0);
+    $idUtente = isLogged() ? (int)$_SESSION['utente_id'] : 0;
+    $totale = (float)($ordineDaPagare['importo_totale'] ?? 0);
+
+    if ($idOrdine <= 0) {
+        throw new RuntimeException('Ordine non valido.');
+    }
+    if (strcasecmp((string)($ordineDaPagare['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0) {
+        throw new RuntimeException('Questo ordine è stato rimborsato: non è possibile effettuare nuove operazioni.');
+    }
+    if (!in_array($metodo, ['carta', 'paypal', 'saldo'], true)) {
+        throw new RuntimeException('Metodo di pagamento non valido.');
+    }
+    if ($metodo === 'saldo') {
+        if ($idUtente <= 0) {
+            throw new RuntimeException('Il pagamento con saldo richiede il login.');
+        }
+        if ((int)($ordineDaPagare['id_utente'] ?? 0) !== $idUtente) {
+            throw new RuntimeException('Ordine non associato al tuo account.');
+        }
+        preparaSupportoPagamentoSaldo($pdo);
+    }
+
     $pdo->beginTransaction();
     try {
+        if ($metodo === 'saldo') {
+            addebitaSaldoUtente($pdo, $idUtente, $totale);
+        }
         if (colonnaEsiste($pdo, 'Ordini', 'metodo_pagamento')) {
             $stmt = $pdo->prepare("UPDATE Ordini SET stato_pagamento = 'Pagato', metodo_pagamento = ? WHERE id_ordine = ?");
             $stmt->execute([$metodo, $idOrdine]);
@@ -508,7 +694,61 @@ function inviaEmailOrdineDopoRisposta(array $ordine, array $codici): void {
     }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ordine'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ricarica_portafoglio'])) {
+    if (!isLogged()) {
+        header('Location: ' . SITE_URL . '/login.php');
+        exit;
+    }
+    try {
+        $prefill = $_SESSION['wallet_topup_prefill'] ?? null;
+        if (!is_array($prefill) || (time() - (int)($prefill['created_at'] ?? 0)) > 900) {
+            throw new RuntimeException('Avvia la ricarica dalla sezione Portafoglio virtuale del tuo account.');
+        }
+        $importo = normalizzaImportoRicarica($prefill['importo'] ?? 0);
+        $metodo = validaMetodoRicarica((string)($prefill['metodo'] ?? 'carta'));
+        $formRicaricaPortafoglio = creaFormRicaricaPortafoglio($importo, $metodo);
+        unset($_SESSION['wallet_topup_prefill']);
+    } catch (Throwable $e) {
+        $errore = $e->getMessage();
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['avvia_ricarica_portafoglio'] ?? '') === '1')) {
+    if (!isLogged()) {
+        header('Location: ' . SITE_URL . '/login.php');
+        exit;
+    } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $errore = 'Token di sicurezza non valido. Riprova.';
+    } else {
+        try {
+            $importo = normalizzaImportoRicarica($_POST['importo'] ?? 0);
+            $metodo = validaMetodoRicarica((string)($_POST['metodo_pagamento'] ?? 'carta'));
+            $formRicaricaPortafoglio = creaFormRicaricaPortafoglio($importo, $metodo);
+        } catch (Throwable $e) {
+            $errore = $e->getMessage();
+        }
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['conferma_ricarica_portafoglio'] ?? '') === '1')) {
+    if (!isLogged()) {
+        header('Location: ' . SITE_URL . '/login.php');
+        exit;
+    } elseif (!verifyCsrf($_POST['csrf_token'] ?? '')) {
+        $errore = 'Token di sicurezza non valido. Riprova.';
+    } else {
+        try {
+            $datiRicarica = leggiPayloadRicaricaPortafoglio($_POST['payload'] ?? '');
+            validaPagamentoSimulato($datiRicarica['metodo'], $_POST);
+            $ricaricaPortafoglioCompletata = completaRicaricaPortafoglio($pdo, (float)$datiRicarica['importo']);
+            $ricaricaPortafoglioCompletata['metodo'] = $datiRicarica['metodo'];
+        } catch (Throwable $e) {
+            $errorePagamento = $e->getMessage();
+            try {
+                $datiRicarica = leggiPayloadRicaricaPortafoglio($_POST['payload'] ?? '');
+                $formRicaricaPortafoglio = creaFormRicaricaPortafoglio((float)$datiRicarica['importo'], (string)$datiRicarica['metodo']);
+            } catch (Throwable $payloadError) {
+                $errore = $e->getMessage();
+            }
+        }
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ordine'])) {
     if (!isLogged()) {
         header('Location: ' . SITE_URL . '/login.php');
         exit;
@@ -517,6 +757,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ordine'])) {
     $ordineDaPagare = caricaOrdineUtenteDaPagare($pdo, (int)($_GET['ordine'] ?? 0));
     if (!$ordineDaPagare) {
         $errore = 'Ordine non trovato oppure non associato al tuo account.';
+    } elseif (strcasecmp((string)($ordineDaPagare['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0) {
+        $errore = 'Questo ordine è stato rimborsato: non è possibile effettuare nuove operazioni.';
     } elseif (($ordineDaPagare['stato_pagamento'] ?? '') === 'Pagato') {
         header('Location: ' . SITE_URL . '/biglietti.php?codice=' . urlencode($ordineDaPagare['codice_recupero']));
         exit;
@@ -533,17 +775,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ordine'])) {
         $errore = 'Token di sicurezza non valido. Riprova.';
     } else {
         $idOrdine = (int)($_POST['id_ordine'] ?? 0);
-        $metodo = 'carta';
+        $metodo = (string)($_POST['metodo_pagamento'] ?? 'carta');
         $ordineDaPagare = caricaOrdineUtenteDaPagare($pdo, $idOrdine);
 
         if (!$ordineDaPagare) {
             $errore = 'Ordine non trovato oppure non associato al tuo account.';
+        } elseif (strcasecmp((string)($ordineDaPagare['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0) {
+            $errore = 'Questo ordine è stato rimborsato: non è possibile effettuare nuove operazioni.';
         } elseif (($ordineDaPagare['stato_pagamento'] ?? '') === 'Pagato') {
             $ordine = $ordineDaPagare;
         } else {
             try {
                 validaPagamentoSimulato($metodo, $_POST);
-                marcaOrdinePagato($pdo, $idOrdine, $metodo);
+                marcaOrdinePagato($pdo, $ordineDaPagare, $metodo);
                 $ordine = caricaOrdineUtenteDaPagare($pdo, $idOrdine) ?: $ordineDaPagare;
                 $ordine['stato_pagamento'] = 'Pagato';
                 $ordine['metodo_pagamento'] = $metodo;
@@ -601,7 +845,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['ordine'])) {
         $dati = normalizzaInputPagamento($_POST);
         $datiOrdine = preparaOrdine($pdo, $dati);
 
-        if ($datiOrdine['metodoPagamento'] === 'contanti') {
+        if ($datiOrdine['metodoPagamento'] === 'saldo') {
+            $result = creaOrdineConBiglietti($pdo, $datiOrdine, 'Pagato', 'Valido');
+            $ordine = $result['ordine'];
+            $bigliettiCreati = $result['codici'];
+            $emailOrdineDaInviare = ['ordine' => $ordine, 'codici' => $bigliettiCreati];
+        } elseif ($datiOrdine['metodoPagamento'] === 'contanti') {
             $result = creaOrdineConBiglietti($pdo, $datiOrdine, 'Non pagato', 'Non pagato');
             $ordine = $result['ordine'];
             $bigliettiCreati = $result['codici'];
@@ -628,16 +877,108 @@ include __DIR__ . '/header.php';
 <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
   <?php if ($errore): ?>
     <div class="bg-white rounded-2xl shadow border border-avorio-dark p-8 text-center">
-      <div class="text-5xl mb-4">⚠️</div>
+      <div class="text-5xl mb-4"></div>
       <h1 class="font-display text-3xl font-bold text-antracite mb-4">Pagamento non completato</h1>
       <div class="alert-error p-4 rounded text-sm mb-6 text-left">Errore: <?= clean($errore) ?></div>
       <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline px-6 py-3 rounded inline-block">Torna alle esposizioni</a>
     </div>
 
+  <?php elseif ($formRicaricaPortafoglio): ?>
+    <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
+      <div class="bg-antracite px-8 py-8 text-center">
+        <div class="text-5xl mb-4"><?= $formRicaricaPortafoglio['metodo'] === 'paypal' ? '🅿' : '' ?></div>
+        <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Ricarica portafoglio</p>
+        <h1 class="font-display text-avorio text-3xl font-bold">
+          <?= $formRicaricaPortafoglio['metodo'] === 'paypal' ? 'Accesso PayPal' : 'Dati carta di credito' ?>
+        </h1>
+      </div>
+
+      <div class="p-8 md:p-10">
+        <?php if ($errorePagamento): ?>
+          <div class="alert-error p-4 rounded text-sm mb-6" role="alert">
+             <?= clean($errorePagamento) ?>
+          </div>
+        <?php endif; ?>
+
+        <div class="bg-avorio rounded-xl p-5 mb-8 text-sm text-gray-600">
+          <p><strong>Operazione:</strong> ricarica portafoglio virtuale</p>
+          <p><strong>Metodo:</strong> <?= clean($formRicaricaPortafoglio['metodo'] === 'paypal' ? 'PayPal' : 'Carta di credito') ?></p>
+          <p><strong>Importo ricarica:</strong> € <?= number_format((float)$formRicaricaPortafoglio['importo'], 2, ',', '.') ?></p>
+        </div>
+
+        <form method="POST" class="space-y-6">
+          <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+          <input type="hidden" name="conferma_ricarica_portafoglio" value="1">
+          <input type="hidden" name="payload" value="<?= clean($formRicaricaPortafoglio['payload']) ?>">
+
+          <?php if ($formRicaricaPortafoglio['metodo'] === 'carta'): ?>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Titolare carta</label>
+              <input type="text" name="titolare" required data-required="1" placeholder="Mario Rossi" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Numero carta</label>
+              <input type="text" name="numero_carta" required data-required="1" placeholder="4111 1111 1111 1111" maxlength="23" inputmode="numeric" autocomplete="cc-number" class="js-card-number w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-body font-bold text-antracite mb-1">Scadenza</label>
+                <input type="text" name="scadenza" required placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp" class="js-card-expiry w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              </div>
+              <div>
+                <label class="block text-sm font-body font-bold text-antracite mb-1">CVV</label>
+                <input type="text" name="cvv" required placeholder="123" maxlength="4" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              </div>
+            </div>
+          <?php else: ?>
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Email PayPal</label>
+              <input type="email" name="paypal_email" required placeholder="nome@email.com" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            </div>
+          <?php endif; ?>
+
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button type="submit" class="btn-oro flex-1 px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
+              Completa ricarica
+            </button>
+            <a href="<?= SITE_URL ?>/account.php" class="btn-outline flex-1 px-7 py-3 rounded font-body text-sm uppercase tracking-wide text-center">
+              Annulla
+            </a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  <?php elseif ($ricaricaPortafoglioCompletata): ?>
+    <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
+      <div class="bg-antracite px-8 py-8 text-center">
+        <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Ricarica completata</p>
+        <h1 class="font-display text-avorio text-3xl font-bold">Portafoglio aggiornato</h1>
+      </div>
+      <div class="p-8 md:p-10 text-center">
+        <p class="text-gray-600 mb-6">La ricarica simulata è stata completata correttamente.</p>
+        <div class="grid sm:grid-cols-3 gap-4 mb-8 text-left">
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Importo ricaricato</div>
+            <div class="font-display text-oro font-bold text-xl">€ <?= number_format((float)$ricaricaPortafoglioCompletata['importo'], 2, ',', '.') ?></div>
+          </div>
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Metodo</div>
+            <div class="font-bold text-antracite text-xl"><?= clean($ricaricaPortafoglioCompletata['metodo'] === 'paypal' ? 'PayPal' : 'Carta') ?></div>
+          </div>
+          <div class="bg-avorio rounded-xl p-4">
+            <div class="text-xs text-gray-500 uppercase tracking-wide">Nuovo saldo</div>
+            <div class="font-display text-oro font-bold text-xl">€ <?= number_format((float)$ricaricaPortafoglioCompletata['saldo'], 2, ',', '.') ?></div>
+          </div>
+        </div>
+        <a href="<?= SITE_URL ?>/account.php" class="btn-oro px-7 py-3 rounded font-body text-sm uppercase tracking-wide inline-block">Torna al profilo</a>
+      </div>
+    </section>
+
   <?php elseif ($formPagamento): ?>
     <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
       <div class="bg-antracite px-8 py-8 text-center">
-        <div class="text-5xl mb-4"><?= $formPagamento['metodo'] === 'paypal' ? '🅿️' : '💳' ?></div>
+        <div class="text-5xl mb-4"><?= $formPagamento['metodo'] === 'paypal' ? '🅿' : '' ?></div>
         <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Pagamento simulato</p>
         <h1 class="font-display text-avorio text-3xl font-bold">
           <?= $formPagamento['metodo'] === 'paypal' ? 'Accesso PayPal' : 'Dati carta di credito' ?>
@@ -647,7 +988,7 @@ include __DIR__ . '/header.php';
       <div class="p-8 md:p-10">
         <?php if ($errorePagamento): ?>
           <div class="alert-error p-4 rounded text-sm mb-6" role="alert">
-            ⚠️ <?= clean($errorePagamento) ?>
+             <?= clean($errorePagamento) ?>
           </div>
         <?php endif; ?>
 
@@ -665,11 +1006,11 @@ include __DIR__ . '/header.php';
           <?php if ($formPagamento['metodo'] === 'carta'): ?>
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">Titolare carta</label>
-              <input type="text" name="titolare" required placeholder="Mario Rossi" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              <input type="text" name="titolare" required data-required="1" placeholder="Mario Rossi" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
             </div>
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">Numero carta</label>
-              <input type="text" name="numero_carta" required placeholder="4111 1111 1111 1111" maxlength="23" inputmode="numeric" autocomplete="cc-number" class="js-card-number w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              <input type="text" name="numero_carta" required data-required="1" placeholder="4111 1111 1111 1111" maxlength="23" inputmode="numeric" autocomplete="cc-number" class="js-card-number w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
             </div>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
@@ -714,7 +1055,7 @@ include __DIR__ . '/header.php';
   <?php elseif ($pagamentoOrdineEsistente): ?>
     <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
       <div class="bg-antracite px-8 py-8 text-center">
-        <div class="text-5xl mb-4">💳</div>
+        <div class="text-5xl mb-4"></div>
         <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Pagamento ordine esistente</p>
         <h1 class="font-display text-avorio text-3xl font-bold">Salda ordine non pagato</h1>
       </div>
@@ -722,7 +1063,7 @@ include __DIR__ . '/header.php';
       <div class="p-8 md:p-10">
         <?php if ($errorePagamento): ?>
           <div class="alert-error p-4 rounded text-sm mb-6" role="alert">
-            ⚠️ <?= clean($errorePagamento) ?>
+             <?= clean($errorePagamento) ?>
           </div>
         <?php endif; ?>
 
@@ -732,14 +1073,46 @@ include __DIR__ . '/header.php';
           <p><strong>Totale:</strong> € <?= number_format((float)($pagamentoOrdineEsistente['importo_totale'] ?? 0), 2, ',', '.') ?></p>
         </div>
 
+        <?php
+          $metodoSceltoOrdine = (string)($pagamentoOrdineEsistente['metodo_pagamento'] ?? 'carta');
+          if (!in_array($metodoSceltoOrdine, ['carta', 'paypal', 'saldo'], true)) {
+              $metodoSceltoOrdine = 'carta';
+          }
+        ?>
+
         <form method="POST" class="space-y-6">
           <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
           <input type="hidden" name="paga_ordine" value="1">
           <input type="hidden" name="id_ordine" value="<?= (int)$pagamentoOrdineEsistente['id_ordine'] ?>">
 
-          <input type="hidden" name="metodo_pagamento" value="carta">
+          <div class="payment-method-picker">
+            <span class="block text-sm font-body font-bold text-antracite mb-3">Metodo di pagamento</span>
+            <div class="payment-method-grid">
+              <label class="payment-method-option">
+                <input type="radio" name="metodo_pagamento" value="carta" required <?= $metodoSceltoOrdine === 'carta' ? 'checked' : '' ?>>
+                <span>
+                  <strong>Carta di credito</strong>
+                  <small>Pagamento simulato con dati carta.</small>
+                </span>
+              </label>
+              <label class="payment-method-option">
+                <input type="radio" name="metodo_pagamento" value="paypal" required <?= $metodoSceltoOrdine === 'paypal' ? 'checked' : '' ?>>
+                <span>
+                  <strong>PayPal</strong>
+                  <small>Simulazione accesso PayPal.</small>
+                </span>
+              </label>
+              <label class="payment-method-option">
+                <input type="radio" name="metodo_pagamento" value="saldo" required <?= $metodoSceltoOrdine === 'saldo' ? 'checked' : '' ?>>
+                <span>
+                  <strong>Saldo utente</strong>
+                  <small>Saldo disponibile: &euro; <?= number_format(saldoUtenteCorrente($pdo, (int)$_SESSION['utente_id']), 2, ',', '.') ?></small>
+                </span>
+              </label>
+            </div>
+          </div>
 
-          <div>
+          <div data-payment-summary="carta">
             <label class="block text-sm font-body font-bold text-antracite mb-3">Metodo di pagamento</label>
             <div class="border border-avorio-dark rounded-xl p-4 bg-white">
               <span class="block font-bold text-antracite text-sm">Carta di credito</span>
@@ -747,7 +1120,7 @@ include __DIR__ . '/header.php';
             </div>
           </div>
 
-          <div class="grid md:grid-cols-2 gap-4">
+          <div class="grid md:grid-cols-2 gap-4" data-payment-fields="carta">
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">Titolare carta</label>
               <input type="text" name="titolare" required placeholder="Mario Rossi" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
@@ -758,12 +1131,22 @@ include __DIR__ . '/header.php';
             </div>
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">Scadenza</label>
-              <input type="text" name="scadenza" required placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp" class="js-card-expiry w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              <input type="text" name="scadenza" required data-required="1" placeholder="MM/AA" maxlength="5" inputmode="numeric" autocomplete="cc-exp" class="js-card-expiry w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
             </div>
             <div>
               <label class="block text-sm font-body font-bold text-antracite mb-1">CVV</label>
-              <input type="text" name="cvv" required placeholder="123" maxlength="4" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              <input type="text" name="cvv" required data-required="1" placeholder="123" maxlength="4" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
             </div>
+          </div>
+
+          <div class="payment-method-fields" data-payment-fields="paypal" hidden>
+            <label class="block text-sm font-body font-bold text-antracite mb-1">Email PayPal</label>
+            <input type="email" name="paypal_email" data-required="1" placeholder="nome@email.com" class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+          </div>
+
+          <div class="payment-method-fields payment-wallet-note" data-payment-fields="saldo" hidden>
+            <strong>Pagamento immediato con saldo virtuale</strong>
+            <span>L'importo verra scalato dal portafoglio e i biglietti saranno subito validi.</span>
           </div>
 
           <button type="submit" class="btn-oro w-full px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
@@ -777,7 +1160,7 @@ include __DIR__ . '/header.php';
     <?php $pagato = ($ordine['stato_pagamento'] === 'Pagato'); ?>
     <section class="bg-white rounded-2xl shadow-xl border border-avorio-dark overflow-hidden">
       <div class="bg-antracite px-8 py-8 text-center">
-        <div class="text-5xl mb-4"><?= $pagato ? '✅' : '💶' ?></div>
+        <div class="text-5xl mb-4"><?= $pagato ? '' : '' ?></div>
         <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">
           <?= $pagato ? 'Pagamento riuscito' : 'Pagamento da completare' ?>
         </p>
@@ -862,6 +1245,39 @@ include __DIR__ . '/header.php';
     input.addEventListener('input', function () {
       formattaScadenzaCarta(input);
     });
+  });
+
+  document.querySelectorAll('form').forEach(function (form) {
+    var radios = form.querySelectorAll('input[name="metodo_pagamento"]');
+    var panels = form.querySelectorAll('[data-payment-fields]');
+    var summaries = form.querySelectorAll('[data-payment-summary]');
+    if (!radios.length || !panels.length) return;
+
+    function aggiornaMetodoPagamento() {
+      var checked = form.querySelector('input[name="metodo_pagamento"]:checked');
+      var metodo = checked ? checked.value : 'carta';
+
+      panels.forEach(function (panel) {
+        var active = panel.getAttribute('data-payment-fields') === metodo;
+        panel.hidden = !active;
+        panel.querySelectorAll('input, select, textarea').forEach(function (field) {
+          if (!field.dataset.wasRequired) {
+            field.dataset.wasRequired = (field.required || field.dataset.required === '1') ? '1' : '0';
+          }
+          field.disabled = !active;
+          field.required = active && field.dataset.wasRequired === '1';
+        });
+      });
+
+      summaries.forEach(function (summary) {
+        summary.hidden = summary.getAttribute('data-payment-summary') !== metodo;
+      });
+    }
+
+    radios.forEach(function (radio) {
+      radio.addEventListener('change', aggiornaMetodoPagamento);
+    });
+    aggiornaMetodoPagamento();
   });
 })();
 </script>

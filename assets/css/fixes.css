@@ -1,0 +1,760 @@
+.expo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.6rem;
+}
+
+@media (min-width: 980px) {
+  .expo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.expo-card {
+  display: flex;
+  min-width: 0;
+  min-height: 28rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #d9e8f5;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(17, 35, 58, 0.10);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.expo-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(47, 111, 159, 0.42);
+  box-shadow: 0 20px 42px rgba(17, 35, 58, 0.16);
+}
+
+.expo-card__media {
+  position: relative;
+  min-height: 9.5rem;
+  overflow: hidden;
+  background: #11233a;
+}
+
+.expo-card__pattern {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(142, 197, 232, 0.24), transparent 45%),
+    repeating-linear-gradient(135deg, rgba(142, 197, 232, 0.55) 0, rgba(142, 197, 232, 0.55) 1px, transparent 1px, transparent 18px);
+  opacity: 0.45;
+}
+
+.expo-card__kicker {
+  position: absolute;
+  left: 1.1rem;
+  top: 1.1rem;
+  color: #b7e0f7;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.expo-card__date {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  display: grid;
+  min-width: 4.6rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 8px;
+  background: #f7fbff;
+  color: #11233a;
+  text-align: center;
+  box-shadow: 0 12px 28px rgba(17, 35, 58, 0.22);
+}
+
+.expo-card__date span {
+  font-family: Georgia, serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.expo-card__date strong {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+
+.expo-status {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.expo-status--published {
+  background: #dff7ea;
+  color: #166534;
+}
+
+.expo-status--draft {
+  background: #fff3c4;
+  color: #7a4b00;
+}
+
+.expo-status--ended,
+.expo-status--neutral {
+  background: #e7edf3;
+  color: #334155;
+}
+
+.expo-status--cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.expo-card__body {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 1.45rem;
+}
+
+.expo-card__heading p {
+  margin: 0 0 0.45rem;
+  color: #2f6f9f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.expo-card__heading h2,
+.expo-card__heading h3 {
+  margin: 0;
+  color: #11233a;
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.expo-card__description {
+  display: -webkit-box;
+  min-height: 6.1rem;
+  margin: 0;
+  overflow: hidden;
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.expo-card__warning {
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #991b1b;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+}
+
+.expo-card__details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.expo-card__details div {
+  min-width: 0;
+  border: 1px solid #d9e8f5;
+  border-radius: 8px;
+  background: #f7fbff;
+  padding: 0.75rem;
+}
+
+.expo-card__details dt {
+  margin-bottom: 0.25rem;
+  color: #42546a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.expo-card__details dd {
+  margin: 0;
+  color: #11233a;
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.expo-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(47, 111, 159, 0.32);
+}
+
+.expo-card__footer span {
+  display: block;
+  color: #42546a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.expo-card__footer strong {
+  display: block;
+  color: #11233a;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.expo-card__action {
+  flex: 0 0 auto;
+  min-height: 2.65rem;
+  padding: 0.75rem 1.05rem;
+  border-radius: 8px !important;
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.expo-card__action--disabled {
+  opacity: 0.72;
+}
+
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.payment-method-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  min-height: 6.4rem;
+  border: 1px solid #d9e8f5;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.payment-method-option:has(input:checked) {
+  border-color: #2f6f9f;
+  background: #f0f8ff;
+  box-shadow: 0 0 0 2px rgba(47, 111, 159, 0.12);
+}
+
+.payment-method-option input {
+  margin-top: 0.2rem;
+}
+
+.payment-method-option strong,
+.payment-method-option small {
+  display: block;
+}
+
+.payment-method-option strong {
+  color: #11233a;
+  font-size: 0.9rem;
+}
+
+.payment-method-option small {
+  margin-top: 0.35rem;
+  color: #42546a;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.payment-method-fields,
+.payment-wallet-note {
+  border: 1px solid #d9e8f5;
+  border-radius: 8px;
+  background: #f7fbff;
+  padding: 1rem;
+}
+
+[data-payment-summary] {
+  display: none;
+}
+
+.payment-wallet-note strong,
+.payment-wallet-note span {
+  display: block;
+}
+
+.payment-wallet-note strong {
+  color: #11233a;
+}
+
+.payment-wallet-note span {
+  margin-top: 0.35rem;
+  color: #42546a;
+  font-size: 0.9rem;
+}
+
+.refund-panel {
+  scroll-margin-top: 7rem;
+}
+
+.refund-panel__form {
+  width: min(100%, 34rem);
+}
+
+.refund-panel textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+@media (min-width: 1181px) {
+  .admin-expo-create-form {
+    grid-template-columns:
+      minmax(14rem, 1.4fr)
+      minmax(9rem, 0.8fr)
+      minmax(9rem, 0.8fr)
+      minmax(9rem, 0.8fr)
+      minmax(5.75rem, 0.45fr) !important;
+  }
+
+  .admin-expo-create-form .admin-description-field {
+    grid-column: 1 / 5 !important;
+  }
+
+  .admin-expo-create-form .admin-submit-field {
+    grid-column: 5 !important;
+  }
+
+  .admin-expo-edit-form {
+    grid-template-columns:
+      minmax(14rem, 1.5fr)
+      minmax(9rem, 0.8fr)
+      minmax(9rem, 0.8fr)
+      minmax(9rem, 0.8fr)
+      minmax(5.75rem, 0.45fr) !important;
+  }
+
+  .admin-expo-edit-form .admin-description-wrap {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+.news-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+@media (min-width: 860px) {
+  .news-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.news-card,
+.news-feature-card {
+  min-width: 0;
+  border-radius: 8px !important;
+}
+
+.news-card {
+  display: flex;
+  min-height: 25rem;
+  flex-direction: column;
+}
+
+.news-card__media {
+  min-height: 7.25rem;
+}
+
+.news-card .p-7 {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.news-card__title {
+  overflow-wrap: anywhere;
+}
+
+.news-card__description {
+  overflow-wrap: anywhere;
+}
+
+.news-card__dates {
+  margin-top: auto;
+  min-width: 0;
+}
+
+.news-card__dates span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.news-feature-card__grid {
+  grid-template-columns: minmax(13rem, 0.6fr) minmax(0, 1.4fr);
+}
+
+@media (max-width: 920px) {
+  .news-feature-card__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .expo-card__media {
+    min-height: 9rem;
+  }
+
+  .payment-method-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .expo-card__body {
+    padding: 1rem;
+  }
+
+  .expo-card__description {
+    min-height: 0;
+  }
+
+  .expo-card__details {
+    grid-template-columns: 1fr;
+  }
+
+  .expo-card__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .expo-card__action {
+    width: 100%;
+  }
+}
+
+/* Ritocchi account: ricarica portafoglio disposta in verticale */
+.wallet-balance-card {
+  width: 100%;
+  max-width: 34rem;
+}
+
+.wallet-recharge-form {
+  width: 100%;
+  max-width: 46rem;
+}
+
+.wallet-payment-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .wallet-balance-card,
+  .wallet-recharge-form {
+    max-width: none;
+  }
+
+  .wallet-payment-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Area admin più compatta sui telefoni stretti, inclusi iPhone con larghezza ridotta */
+@media (max-width: 430px) {
+  .admin-page-main {
+    padding-left: 0.7rem !important;
+    padding-right: 0.7rem !important;
+    padding-top: 1.75rem !important;
+    padding-bottom: 1.75rem !important;
+  }
+
+  .admin-page-main > section,
+  .admin-page-main .admin-exposition-card,
+  .admin-page-main .admin-user-card,
+  .admin-page-main .rounded-2xl {
+    border-radius: 0.95rem !important;
+  }
+
+  .admin-page-main section > .bg-antracite,
+  .admin-page-main section > .p-6,
+  .admin-page-main section > .bg-avorio,
+  .admin-page-main .admin-exposition-card > div,
+  .admin-page-main .admin-user-card > div,
+  .admin-page-main .admin-user-card form,
+  .admin-page-main .bg-white.border.border-avorio-dark.rounded-2xl {
+    padding: 0.95rem !important;
+  }
+
+  .admin-page-main .admin-exposition-card {
+    margin: 0.75rem !important;
+  }
+
+  .admin-page-main h1 {
+    font-size: 2rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .admin-page-main h2,
+  .admin-page-main h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.18 !important;
+  }
+
+  .admin-page-main input,
+  .admin-page-main select,
+  .admin-page-main textarea {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0.7rem 0.78rem !important;
+    font-size: 0.86rem !important;
+  }
+
+  .admin-page-main .btn-oro,
+  .admin-page-main .btn-outline,
+  .admin-page-main button[type="submit"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0.7rem 0.78rem !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.04em !important;
+    white-space: normal !important;
+  }
+
+  .admin-page-main .admin-submit-field {
+    justify-content: stretch !important;
+  }
+
+  .admin-page-main .admin-small-submit,
+  .admin-page-main .admin-submit-field > button {
+    width: 100% !important;
+  }
+
+  .admin-page-main .grid,
+  .admin-page-main form,
+  .admin-page-main .flex {
+    min-width: 0 !important;
+  }
+
+  .admin-page-main .text-2xl {
+    font-size: 1.25rem !important;
+  }
+
+  .admin-page-main .text-xl {
+    font-size: 1.05rem !important;
+  }
+}
+
+
+/* Ripristino centratura pagine autenticazione */
+.auth-page {
+  min-height: calc(100vh - 5rem);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  background: #f7fbff;
+}
+
+.auth-card {
+  width: 100%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  flex: 0 1 auto;
+}
+
+@media (min-width: 768px) {
+  .auth-page {
+    padding-top: 4rem !important;
+    padding-bottom: 4rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .auth-page {
+    min-height: calc(100vh - 5rem);
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+}
+
+/* Admin più fluido su iPad e tablet: niente campi fuori card */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .admin-page-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: clamp(0.75rem, 2vw, 1.25rem) !important;
+    padding-right: clamp(0.75rem, 2vw, 1.25rem) !important;
+    padding-top: 2rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .admin-page-main,
+  .admin-page-main *,
+  .admin-page-main *::before,
+  .admin-page-main *::after {
+    box-sizing: border-box !important;
+  }
+
+  .admin-page-main > section,
+  .admin-page-main .admin-exposition-card,
+  .admin-page-main .admin-user-card,
+  .admin-page-main .rounded-2xl {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    border-radius: 1rem !important;
+  }
+
+  .admin-page-main section > .bg-antracite,
+  .admin-page-main section > .p-6,
+  .admin-page-main section > .bg-avorio,
+  .admin-page-main .admin-exposition-card > div,
+  .admin-page-main .admin-user-card > div,
+  .admin-page-main .admin-user-card form,
+  .admin-page-main .bg-white.border.border-avorio-dark.rounded-2xl {
+    padding: 1rem !important;
+  }
+
+  .admin-page-main .admin-exposition-card {
+    margin: 1rem !important;
+  }
+
+  .admin-page-main .grid,
+  .admin-page-main form,
+  .admin-page-main .flex,
+  .admin-page-main article,
+  .admin-page-main div {
+    min-width: 0 !important;
+  }
+
+  .admin-page-main input,
+  .admin-page-main select,
+  .admin-page-main textarea {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0.78rem 0.85rem !important;
+    font-size: 0.88rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .admin-page-main textarea {
+    min-height: 6rem !important;
+  }
+
+  .admin-page-main .btn-oro,
+  .admin-page-main .btn-outline,
+  .admin-page-main button[type="submit"] {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0.78rem 0.85rem !important;
+    font-size: 0.74rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.045em !important;
+    white-space: normal !important;
+  }
+
+  .admin-page-main .admin-small-submit,
+  .admin-page-main .admin-submit-field > button {
+    width: auto !important;
+  }
+
+  .admin-page-main h2,
+  .admin-page-main h3 {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 920px) {
+  .admin-quick-nav .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .admin-page-main form.grid,
+  .admin-page-main .admin-expo-create-form,
+  .admin-page-main .admin-expo-edit-form,
+  .admin-page-main .admin-inline-form,
+  #admin-categorie form,
+  #admin-tariffe form,
+  #admin-servizi form,
+  .admin-page-main .md\:grid-cols-2,
+  .admin-page-main .md\:grid-cols-3,
+  .admin-page-main .md\:grid-cols-4,
+  .admin-page-main .md\:grid-cols-5,
+  .admin-page-main .md\:grid-cols-6,
+  .admin-page-main .md\:grid-cols-7,
+  .admin-page-main .xl\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-page-main .md\:col-span-1,
+  .admin-page-main .md\:col-span-2,
+  .admin-page-main .md\:col-span-3,
+  .admin-page-main .md\:col-span-4,
+  .admin-page-main .md\:col-span-5,
+  .admin-page-main .xl\:col-span-2,
+  .admin-page-main .admin-description-field,
+  .admin-page-main .admin-description-wrap,
+  .admin-page-main .admin-submit-field {
+    grid-column: 1 / -1 !important;
+  }
+
+  .admin-page-main .admin-submit-field {
+    justify-content: stretch !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+  }
+
+  .admin-page-main .admin-small-submit,
+  .admin-page-main .admin-submit-field > button {
+    width: 100% !important;
+  }
+}
+
+@media (min-width: 921px) and (max-width: 1180px) {
+  .admin-page-main form.grid,
+  .admin-page-main .admin-expo-create-form,
+  .admin-page-main .admin-expo-edit-form,
+  .admin-page-main .admin-inline-form,
+  #admin-categorie form,
+  #admin-tariffe form,
+  #admin-servizi form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.85rem !important;
+  }
+
+  .admin-page-main .admin-description-field,
+  .admin-page-main .admin-description-wrap,
+  .admin-page-main .admin-submit-field {
+    grid-column: 1 / -1 !important;
+  }
+
+  .admin-page-main .admin-submit-field {
+    justify-content: flex-end !important;
+  }
+}

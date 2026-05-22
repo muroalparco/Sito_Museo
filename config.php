@@ -5,11 +5,13 @@
    ========================= */
 
 $hostAttuale = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$hostNome = strtolower((string)(parse_url('http://' . $hostAttuale, PHP_URL_HOST) ?: $hostAttuale));
 
 $isLocalhost =
-    $hostAttuale === 'localhost' ||
-    $hostAttuale === '127.0.0.1' ||
-    strpos($hostAttuale, 'localhost') !== false;
+    $hostNome === 'localhost' ||
+    $hostNome === '127.0.0.1' ||
+    $hostNome === '::1' ||
+    substr($hostNome, -10) === '.localhost';
 
 
 /* =========================
@@ -98,6 +100,14 @@ if (session_status() === PHP_SESSION_NONE) {
 
     if (!$isLocalhost) {
         ini_set('session.cookie_secure', 1);
+    } else {
+        $sessionPathLocale = __DIR__ . '/tmp/sessions';
+        if (!is_dir($sessionPathLocale)) {
+            @mkdir($sessionPathLocale, 0775, true);
+        }
+        if (is_dir($sessionPathLocale) && is_writable($sessionPathLocale)) {
+            ini_set('session.save_path', $sessionPathLocale);
+        }
     }
 
     session_start();

@@ -123,6 +123,31 @@ function museoGetNativeFromEmail(): string
     return museoGetSmtpFromEmail();
 }
 
+function museoIsOnlineServer(): bool
+{
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $host = preg_replace('/:\d+$/', '', $host);
+
+    return $host !== '' && $host !== 'localhost' && $host !== '127.0.0.1';
+}
+
+function museoAttachmentPathIsSafe($path): bool
+{
+    if (!is_string($path)) {
+        return false;
+    }
+
+    $path = trim($path);
+
+    if ($path === '' || strlen($path) > 1024 || strpos($path, "\0") !== false || strpos($path, "
+") !== false || strpos($path, "
+") !== false) {
+        return false;
+    }
+
+    return is_file($path) && is_readable($path);
+}
+
 function museoSendMailNative(
     string $to,
     string $subject,
@@ -144,10 +169,10 @@ function museoSendMailNative(
         $path = is_array($attachment) ? ($attachment['path'] ?? '') : (string)$attachment;
         $name = is_array($attachment) ? ($attachment['name'] ?? basename($path)) : basename($path);
 
-        if ($path !== '' && is_file($path) && is_readable($path)) {
-            $validAttachments[] = ['path' => $path, 'name' => $name];
+        if (museoAttachmentPathIsSafe($path)) {
+            $validAttachments[] = ['path' => trim($path), 'name' => $name];
         } else {
-            museoMailLog('Allegato ignorato perché non leggibile: ' . $path);
+            museoMailLog('Allegato ignorato perché non leggibile o non è un percorso valido.');
         }
     }
 
@@ -251,6 +276,14 @@ function museoSendMail(
 
     museoMailLog('Tentativo invio a ' . $to . ' | SMTP_ACTIVE=' . ($smtpActive ? 'true' : 'false') . ' | PHPMailer=' . ($phpMailerBase ?: 'non trovato'));
 
+    // Su Altervista l'invio di allegati tramite mail() può restare appeso a lungo.
+    // Per evitare caricamenti infiniti dopo pagamento/cassa, online inviamo subito la mail HTML senza allegati.
+    // In locale, invece, PHPMailer continua a poter allegare il PDF.
+    if (museoIsOnlineServer() && !empty($attachments)) {
+        museoMailLog('Server online: allegati rimossi dall\'invio per evitare timeout/caricamento infinito.');
+        $attachments = [];
+    }
+
     if (museoPreferisciInvioRapidoSenzaAllegati($attachments)) {
         museoMailLog('Invio rapido attivo: provo prima mail() per evitare attese SMTP.');
         $nativeFirstOk = museoSendMailNative($to, $subject, $htmlBody, $plainBody, $attachments);
@@ -311,10 +344,10 @@ function museoSendMail(
                 $path = is_array($attachment) ? ($attachment['path'] ?? '') : (string)$attachment;
                 $name = is_array($attachment) ? ($attachment['name'] ?? basename($path)) : basename($path);
 
-                if ($path !== '' && is_file($path) && is_readable($path)) {
-                    $mail->addAttachment($path, $name);
+                if (museoAttachmentPathIsSafe($path)) {
+                    $mail->addAttachment(trim($path), $name);
                 } else {
-                    museoMailLog('Allegato PHPMailer ignorato perché non leggibile: ' . $path);
+                    museoMailLog('Allegato PHPMailer ignorato perché non leggibile o non è un percorso valido.');
                 }
             }
 
@@ -360,14 +393,14 @@ function inviaEmailVerificaAccount(string $email, string $nome, string $codice):
 
     $body = "
         <div style='font-family:Arial,sans-serif;line-height:1.6;color:#2C2C2C;max-width:620px;margin:auto;border:1px solid #e5e0d0;border-radius:14px;overflow:hidden;'>
-            <div style='background:#2C2C2C;color:#F5F0E8;padding:24px;text-align:center;'>
-                <h1 style='margin:0;color:#C9A84C;'>{$siteHtml}</h1>
+            <div style='background:#2C2C2C;color:#F7FBFF;padding:24px;text-align:center;'>
+                <h1 style='margin:0;color:#8EC5E8;'>{$siteHtml}</h1>
                 <p style='margin:8px 0 0;'>Verifica il tuo account</p>
             </div>
             <div style='padding:26px;background:#ffffff;'>
                 <p>Ciao <strong>{$nomeHtml}</strong>,</p>
                 <p>grazie per la registrazione. Inserisci questo codice nella pagina di verifica:</p>
-                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F5F0E8;border:1px solid #C9A84C;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
+                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F7FBFF;border:1px solid #8EC5E8;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
                 <p>Se non hai richiesto tu la registrazione, ignora questa email.</p>
             </div>
         </div>
@@ -387,14 +420,14 @@ function inviaEmailCodiceRecuperoPassword(string $email, string $nome, string $c
 
     $body = "
         <div style='font-family:Arial,sans-serif;line-height:1.6;color:#2C2C2C;max-width:620px;margin:auto;border:1px solid #e5e0d0;border-radius:14px;overflow:hidden;'>
-            <div style='background:#2C2C2C;color:#F5F0E8;padding:24px;text-align:center;'>
-                <h1 style='margin:0;color:#C9A84C;'>{$siteHtml}</h1>
+            <div style='background:#2C2C2C;color:#F7FBFF;padding:24px;text-align:center;'>
+                <h1 style='margin:0;color:#8EC5E8;'>{$siteHtml}</h1>
                 <p style='margin:8px 0 0;'>Recupero password</p>
             </div>
             <div style='padding:26px;background:#ffffff;'>
                 <p>Ciao <strong>{$nomeHtml}</strong>,</p>
                 <p>per completare il recupero password inserisci questo codice insieme alla risposta di sicurezza:</p>
-                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F5F0E8;border:1px solid #C9A84C;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
+                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F7FBFF;border:1px solid #8EC5E8;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
                 <p>Il codice scade dopo pochi minuti. Se non hai richiesto tu il recupero, ignora questa email.</p>
             </div>
         </div>
@@ -426,41 +459,139 @@ function inviaEmailConfermaOrdine(array $ordine, array $codici = [], string $pdf
     $codiceHtml = htmlspecialchars($codiceOrdine, ENT_QUOTES, 'UTF-8');
     $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
 
+    $pagato = strcasecmp((string)($ordine['stato_pagamento'] ?? 'Pagato'), 'Pagato') === 0;
     $righeBiglietti = '';
     foreach ($codici as $codice) {
-        $righeBiglietti .= '<li style="margin:4px 0;"><strong>' . htmlspecialchars((string)$codice, ENT_QUOTES, 'UTF-8') . '</strong></li>';
+        $codicePulito = htmlspecialchars((string)$codice, ENT_QUOTES, 'UTF-8');
+        $qr = '';
+        if ($pagato) {
+            $qrUrl = SITE_URL . '/ticket_qr.php?small=1&codice=' . rawurlencode((string)$codice);
+            $ticketUrl = SITE_URL . '/ticket.php?codice=' . rawurlencode((string)$codice);
+            $qr = '<div style="margin-top:10px;"><a href="' . htmlspecialchars($ticketUrl, ENT_QUOTES, 'UTF-8') . '"><img src="' . htmlspecialchars($qrUrl, ENT_QUOTES, 'UTF-8') . '" width="120" height="120" alt="QR code biglietto" style="display:block;border:1px solid #d8e8f7;border-radius:12px;padding:8px;background:#fff;"></a></div>';
+        }
+        $righeBiglietti .= '<div style="border:1px solid #d8e8f7;border-radius:14px;padding:14px;margin:10px 0;background:#F7FBFF;"><strong>' . $codicePulito . '</strong>' . $qr . '</div>';
     }
     if ($righeBiglietti === '') {
-        $righeBiglietti = '<li>Nessun codice biglietto disponibile.</li>';
+        $righeBiglietti = '<p>Nessun codice biglietto disponibile.</p>';
     }
 
     $subject = 'Conferma ordine ' . $codiceOrdine . ' - ' . $siteName;
     $body = "
-        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#2C2C2C;max-width:680px;margin:auto;border:1px solid #e5e0d0;border-radius:14px;overflow:hidden;'>
-            <div style='background:#2C2C2C;color:#F5F0E8;padding:24px;text-align:center;'>
-                <h1 style='margin:0;color:#C9A84C;'>{$siteHtml}</h1>
+        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#12233B;max-width:720px;margin:auto;border:1px solid #d8e8f7;border-radius:18px;overflow:hidden;background:#ffffff;'>
+            <div style='background:#12233B;color:#F7FBFF;padding:28px;text-align:center;'>
+                <h1 style='margin:0;color:#8EC5E8;font-size:28px;'>{$siteHtml}</h1>
                 <p style='margin:8px 0 0;'>Conferma ordine</p>
             </div>
-            <div style='padding:26px;background:#ffffff;'>
+            <div style='padding:28px;background:#ffffff;'>
                 <p>Ciao <strong>{$nome}</strong>,</p>
                 <p>ti confermiamo l'ordine <strong>{$codiceHtml}</strong>.</p>
-                <p><strong>Metodo pagamento:</strong> {$metodo}<br>
-                   <strong>Stato pagamento:</strong> {$stato}<br>
-                   <strong>Totale:</strong> € {$totale}</p>
-                <p><strong>Codici biglietto:</strong></p>
-                <ul>{$righeBiglietti}</ul>
+                <div style='background:#F7FBFF;border:1px solid #d8e8f7;border-radius:14px;padding:16px;margin:18px 0;'>
+                  <p style='margin:0;'><strong>Metodo pagamento:</strong> {$metodo}<br>
+                  <strong>Stato pagamento:</strong> {$stato}<br>
+                  <strong>Totale:</strong> € {$totale}</p>
+                </div>
+                <p><strong>Codici biglietto e QR code:</strong></p>
+                {$righeBiglietti}
+                <p style='margin-top:20px;background:#fff7df;border-left:4px solid #8EC5E8;padding:12px;border-radius:8px;'>Si ricorda di portare i documenti richiesti per eventuali riduzioni.</p>
                 <p>In allegato trovi il PDF riepilogativo dell'ordine, se disponibile.</p>
             </div>
         </div>
     ";
 
     $attachments = [];
-    if ($pdfPath !== '' && is_file($pdfPath) && is_readable($pdfPath)) {
-        $attachments[] = [
-            'path' => $pdfPath,
-            'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf',
-        ];
+    $tmpPdfDaEliminare = null;
+
+    if ($pdfPath !== '') {
+        if (museoAttachmentPathIsSafe($pdfPath)) {
+            $attachments[] = [
+                'path' => trim($pdfPath),
+                'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf',
+            ];
+        } elseif (strncmp($pdfPath, '%PDF-', 5) === 0) {
+            // Compatibilità: se per errore viene passato il contenuto del PDF invece del percorso,
+            // lo trasformiamo in un file temporaneo. Online verrà comunque rimosso dagli allegati per evitare timeout.
+            $tmpBase = tempnam(sys_get_temp_dir(), 'mss_pdf_mail_');
+            if ($tmpBase !== false) {
+                $tmpPdfDaEliminare = $tmpBase . '.pdf';
+                @rename($tmpBase, $tmpPdfDaEliminare);
+                @file_put_contents($tmpPdfDaEliminare, $pdfPath);
+                if (museoAttachmentPathIsSafe($tmpPdfDaEliminare)) {
+                    $attachments[] = [
+                        'path' => $tmpPdfDaEliminare,
+                        'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf',
+                    ];
+                }
+            }
+        } else {
+            museoMailLog('PDF ordine non allegato: valore ricevuto non è un percorso valido.');
+        }
     }
 
-    return museoSendMail($email, $subject, $body, museoPlainFromHtml($body), $attachments);
+    try {
+        return museoSendMail($email, $subject, $body, museoPlainFromHtml($body), $attachments);
+    } finally {
+        if ($tmpPdfDaEliminare) {
+            @unlink($tmpPdfDaEliminare);
+        }
+    }
+}
+
+function inviaEmailEsitoRimborso(array $ordine, string $esito, string $nota = ''): bool
+{
+    $email = (string)($ordine['email_cliente'] ?? $ordine['email_utente'] ?? $ordine['email'] ?? '');
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        museoMailLog('Esito rimborso non inviato: email mancante o non valida per ordine ' . (string)($ordine['codice_recupero'] ?? $ordine['id_ordine'] ?? ''));
+        return false;
+    }
+
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Museo Storico Severi';
+    $codiceOrdine = (string)($ordine['codice_recupero'] ?? ('ORD-' . ($ordine['id_ordine'] ?? '')));
+    $nome = trim((string)($ordine['nome_cliente'] ?? ''));
+    if ($nome === '') {
+        $nome = trim((string)(($ordine['nome'] ?? '') . ' ' . ($ordine['cognome'] ?? '')));
+    }
+    if ($nome === '') {
+        $nome = 'Visitatore';
+    }
+
+    $esito = ucfirst(mb_strtolower(trim($esito), 'UTF-8'));
+    $accettato = strcasecmp($esito, 'Accettato') === 0;
+    $titoloEsito = $accettato ? 'Rimborso accettato' : 'Rimborso rifiutato';
+    $subject = $titoloEsito . ' - ordine ' . $codiceOrdine . ' - ' . $siteName;
+
+    $nomeHtml = htmlspecialchars($nome, ENT_QUOTES, 'UTF-8');
+    $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
+    $codiceHtml = htmlspecialchars($codiceOrdine, ENT_QUOTES, 'UTF-8');
+    $totaleHtml = number_format((float)($ordine['importo_totale'] ?? 0), 2, ',', '.');
+    $notaHtml = trim($nota) !== '' ? '<p>' . nl2br(htmlspecialchars($nota, ENT_QUOTES, 'UTF-8')) . '</p>' : '';
+
+    $messaggio = $accettato
+        ? "La tua richiesta di rimborso è stata accettata. L'importo dell'ordine è stato riaccreditato sul tuo portafoglio virtuale. I biglietti collegati all'ordine non sono più utilizzabili."
+        : "La tua richiesta di rimborso è stata rifiutata. L'ordine rimane consultabile nella tua area ordini.";
+    $messaggioHtml = htmlspecialchars($messaggio, ENT_QUOTES, 'UTF-8');
+    $badgeColor = $accettato ? '#E8F7EE' : '#FFF4E5';
+    $badgeBorder = $accettato ? '#9BD5AE' : '#E1B66C';
+    $badgeText = $accettato ? '#166534' : '#92400E';
+
+    $body = "
+        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#12233B;max-width:680px;margin:auto;border:1px solid #d8e8f7;border-radius:18px;overflow:hidden;background:#ffffff;'>
+            <div style='background:#12233B;color:#F7FBFF;padding:28px;text-align:center;'>
+                <h1 style='margin:0;color:#8EC5E8;font-size:28px;'>{$siteHtml}</h1>
+                <p style='margin:8px 0 0;'>{$titoloEsito}</p>
+            </div>
+            <div style='padding:28px;background:#ffffff;'>
+                <p>Ciao <strong>{$nomeHtml}</strong>,</p>
+                <p>{$messaggioHtml}</p>
+                <div style='background:{$badgeColor};border:1px solid {$badgeBorder};border-radius:14px;padding:16px;margin:18px 0;color:{$badgeText};'>
+                  <p style='margin:0;'><strong>Ordine:</strong> {$codiceHtml}<br>
+                  <strong>Esito:</strong> {$titoloEsito}<br>
+                  <strong>Importo:</strong> € {$totaleHtml}</p>
+                </div>
+                {$notaHtml}
+                <p>Puoi continuare a consultare l'ordine nella tua area personale.</p>
+            </div>
+        </div>
+    ";
+
+    return museoSendMail($email, $subject, $body, museoPlainFromHtml($body));
 }

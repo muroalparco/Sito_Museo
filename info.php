@@ -43,19 +43,25 @@ include __DIR__ . '/header.php';
 </section>
 
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+  <figure class="mb-12 rounded-2xl overflow-hidden shadow-xl border border-avorio-dark bg-white">
+    <picture>
+      <source srcset="<?= SITE_URL ?>/img/foto/percorso-museale.webp 640w, <?= SITE_URL ?>/img/foto/percorso-museale@2x.webp 960w" sizes="(max-width: 1024px) 100vw, 960px">
+      <img src="<?= SITE_URL ?>/img/foto/percorso-museale.webp" width="960" height="576" alt="Percorso museale" class="w-full h-auto object-cover" loading="lazy" decoding="async">
+    </picture>
+  </figure>
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
     <article class="bg-white rounded-xl shadow p-7 border border-avorio-dark">
-      <div class="text-3xl mb-3">🕘</div>
+      <div class="w-10 h-px bg-oro mb-4"></div>
       <h2 class="font-display text-xl font-bold text-antracite mb-2">Orari</h2>
       <p class="text-gray-500 text-sm leading-relaxed">Dal martedì alla domenica, dalle 9:00 alle 18:00. Ultimo ingresso consigliato alle 17:00.</p>
     </article>
     <article class="bg-white rounded-xl shadow p-7 border border-avorio-dark">
-      <div class="text-3xl mb-3">📍</div>
+      <div class="w-10 h-px bg-oro mb-4"></div>
       <h2 class="font-display text-xl font-bold text-antracite mb-2">Dove siamo</h2>
       <p class="text-gray-500 text-sm leading-relaxed">Via Luigi Pettinati 46, 35128 Padova. Il museo è raggiungibile con mezzi pubblici e dispone di accesso facilitato.</p>
     </article>
     <article class="bg-white rounded-xl shadow p-7 border border-avorio-dark">
-      <div class="text-3xl mb-3">🎧</div>
+      <div class="w-10 h-px bg-oro mb-4"></div>
       <h2 class="font-display text-xl font-bold text-antracite mb-2">Servizi</h2>
       <p class="text-gray-500 text-sm leading-relaxed">Audioguide, visite guidate, cataloghi e servizi aggiuntivi possono essere associati al biglietto.</p>
     </article>

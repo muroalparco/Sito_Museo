@@ -65,10 +65,10 @@ include __DIR__ . '/header.php';
 
 <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
   <?php if ($errore): ?>
-    <div class="alert-error p-5 rounded mb-8 font-body">⚠️ <?= clean($errore) ?></div>
+    <div class="alert-error p-5 rounded mb-8 font-body"> <?= clean($errore) ?></div>
     <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline px-6 py-3 rounded inline-block">Torna alle esposizioni</a>
   <?php elseif (empty($tariffe)): ?>
-    <div class="alert-error p-5 rounded mb-8 font-body">⚠️ Nessuna tariffa disponibile per questo tipo di biglietto.</div>
+    <div class="alert-error p-5 rounded mb-8 font-body"> Nessuna tariffa disponibile per questo tipo di biglietto.</div>
   <?php else: ?>
 
   <div class="grid lg:grid-cols-3 gap-8">
@@ -135,23 +135,40 @@ include __DIR__ . '/header.php';
           </div>
         <?php endif; ?>
 
-        <div class="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-body font-bold text-antracite mb-1">Tariffa <span class="text-red-500">*</span></label>
-            <select name="id_tariffa" required class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
-              <option value="">Seleziona una tariffa</option>
-              <?php foreach ($tariffe as $t): ?>
-                <option value="<?= (int)$t['id_tariffa'] ?>">
-                  <?= clean($t['categoria']) ?> - € <?= number_format((float)$t['prezzo'], 2, ',', '.') ?>
-                  <?= $t['documento_richiesto'] ? ' · documento: '.clean($t['documento_richiesto']) : '' ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
+        <div>
+          <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-body font-bold text-antracite mb-1">Biglietti per categoria <span class="text-red-500">*</span></label>
+              <p class="text-xs text-gray-500">Puoi creare un unico ordine con categorie diverse, ad esempio 5 interi e 1 disabile.</p>
+            </div>
+            <span class="text-xs text-gray-500">Inserisci 0 nelle categorie che non ti servono.</span>
           </div>
-          <div>
-            <label class="block text-sm font-body font-bold text-antracite mb-1">Numero posti <span class="text-red-500">*</span></label>
-            <input type="number" name="quantita" min="1" max="20" value="1" required
-                   class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+
+          <div class="grid gap-3">
+            <?php foreach ($tariffe as $t): ?>
+              <div class="grid sm:grid-cols-[1fr_140px] gap-3 items-center border border-avorio-dark rounded-xl p-4 bg-avorio">
+                <div>
+                  <span class="block font-bold text-antracite text-sm"><?= clean($t['categoria']) ?></span>
+                  <span class="block text-xs text-gray-500 mt-1">
+                    € <?= number_format((float)$t['prezzo'], 2, ',', '.') ?>
+                    <?= $t['documento_richiesto'] ? ' · documento: '.clean($t['documento_richiesto']) : '' ?>
+                  </span>
+                </div>
+                <div>
+                  <label class="sr-only" for="tariffa-<?= (int)$t['id_tariffa'] ?>">Quantità <?= clean($t['categoria']) ?></label>
+                  <input
+                    id="tariffa-<?= (int)$t['id_tariffa'] ?>"
+                    type="number"
+                    name="tariffa_quantita[<?= (int)$t['id_tariffa'] ?>]"
+                    min="0"
+                    max="50"
+                    value="0"
+                    inputmode="numeric"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro"
+                  >
+                </div>
+              </div>
+            <?php endforeach; ?>
           </div>
         </div>
 
@@ -176,7 +193,7 @@ include __DIR__ . '/header.php';
 
         <div class="border-t border-avorio-dark pt-6">
           <label class="block text-sm font-body font-bold text-antracite mb-3">Metodo di pagamento <span class="text-red-500">*</span></label>
-          <div class="grid sm:grid-cols-3 gap-3">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
               <input type="radio" name="metodo_pagamento" value="contanti" required class="mt-1">
               <span>
@@ -198,6 +215,15 @@ include __DIR__ . '/header.php';
                 <span class="block text-xs text-gray-500 mt-1">Simulazione accesso PayPal.</span>
               </span>
             </label>
+            <?php if (isLogged()): ?>
+            <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
+              <input type="radio" name="metodo_pagamento" value="saldo" required class="mt-1">
+              <span>
+                <span class="block font-bold text-antracite text-sm">Saldo utente</span>
+                <span class="block text-xs text-gray-500 mt-1">Usa il portafoglio virtuale. Saldo: € <?= number_format(saldoUtenteCorrente(), 2, ',', '.') ?></span>
+              </span>
+            </label>
+            <?php endif; ?>
           </div>
         </div>
 

@@ -6,6 +6,8 @@ $cssPath = __DIR__ . '/assets/css/style.css';
 $cssVersion = file_exists($cssPath) ? filemtime($cssPath) : time();
 $tailwindPath = __DIR__ . '/assets/css/tailwind-local.css';
 $tailwindVersion = file_exists($tailwindPath) ? filemtime($tailwindPath) : $cssVersion;
+$fixesPath = __DIR__ . '/assets/css/fixes.css';
+$fixesVersion = file_exists($fixesPath) ? filemtime($fixesPath) : $cssVersion;
 $homeCriticalPath = __DIR__ . '/assets/css/home-critical.css';
 $currentPage = basename($_SERVER['PHP_SELF']);
 $isAdminPage = ($currentPage === 'admin.php' && isAdmin());
@@ -42,20 +44,11 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
   <title><?= clean($pageTitle ?? SITE_NAME) ?> — <?= SITE_NAME ?></title>
   <meta name="description" content="<?= clean($metaDescription) ?>">
 
-  <?php if ($currentPage !== 'index.php'): ?>
-    <!-- Font Google caricati solo sulle pagine interne: sulla home restano i font di sistema per migliorare FCP/LCP -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
-    >
-    <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    </noscript>
+  <?php if ($currentPage === 'index.php'): ?>
+    <link rel="preload" as="image" href="<?= SITE_URL ?>/img/logo-lcp.webp" imagesrcset="<?= SITE_URL ?>/img/logo-lcp.webp 256w, <?= SITE_URL ?>/img/logo-256.webp 144w" imagesizes="(max-width: 767px) 220px, 256px" type="image/webp" fetchpriority="high">
   <?php endif; ?>
+
+  <!-- Font di sistema: nessuna richiesta esterna -->
 
   <?php if ($currentPage === 'index.php'): ?>
 
@@ -73,6 +66,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
     <!-- Tailwind locale generato: evita il CDN JavaScript bloccante -->
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/tailwind-local.css?v=<?= $tailwindVersion ?>">
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= $cssVersion ?>">
+    <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/fixes.css?v=<?= $fixesVersion ?>">
   <?php endif; ?>
 </head>
 
@@ -92,7 +86,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
           aria-expanded="false"
           aria-label="Apri menu amministrazione"
         >
-          <span aria-hidden="true">☰</span>
+          <span aria-hidden="true"></span>
           <span>Admin</span>
         </button>
       <?php endif; ?>
@@ -100,14 +94,13 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
       <!-- Logo -->
       <a href="<?= SITE_URL ?>/index.php" class="flex items-center gap-3 group shrink-0 <?= $isAdminPage ? 'admin-header-logo' : '' ?>">
         <img 
-          src="<?= SITE_URL ?>/img/logo-128.webp" 
-          srcset="<?= SITE_URL ?>/img/logo-128.webp 128w, <?= SITE_URL ?>/img/logo-256.webp 256w"
-          sizes="(max-width: 640px) 56px, 64px"
-          width="64"
-          height="64"
+          src="<?= SITE_URL ?>/img/logo-256.webp"
+          width="96"
+          height="72"
           alt="Logo Museo Storico Severi"
-          class="h-14 sm:h-16 w-auto object-contain drop-shadow-[0_0_10px_rgba(201,168,76,0.30)]"
+          class="header-logo-img object-contain drop-shadow-[0_0_10px_rgba(142,197,232,0.30)]"
           decoding="async"
+          fetchpriority="high"
         >
 
         <div class="leading-tight hidden sm:block">
@@ -151,6 +144,11 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
       <!-- Area utente desktop -->
       <div class="hidden md:flex items-center gap-3">
         <?php if (isLogged()): ?>
+
+          <a href="<?= SITE_URL ?>/account.php" class="hidden lg:inline-flex items-center gap-2 rounded-full border border-oro/40 bg-antracite-light/70 px-3 py-2 text-xs font-body text-avorio hover:border-oro transition-colors" title="Saldo portafoglio">
+            <span class="uppercase tracking-widest text-oro">Saldo</span>
+            <strong>€ <?= number_format(saldoUtenteCorrente(), 2, ',', '.') ?></strong>
+          </a>
 
           <div class="nav-dropdown">
             <button type="button" class="flex items-center gap-2 text-avorio hover:text-oro transition-colors">
@@ -241,6 +239,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
           <div>
             <div class="text-avorio font-body font-bold text-sm"><?= clean($_SESSION['utente_nome'] ?? 'Utente') ?></div>
             <div class="text-oro text-xs uppercase tracking-widest"><?= clean($_SESSION['utente_ruolo'] ?? 'utente') ?></div>
+            <div class="text-avorio text-xs mt-1">Saldo: <strong>€ <?= number_format(saldoUtenteCorrente(), 2, ',', '.') ?></strong></div>
           </div>
         </div>
 
@@ -277,6 +276,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
         ['href' => '#admin-tariffe', 'label' => 'Tariffe'],
         ['href' => '#admin-servizi', 'label' => 'Servizi'],
         ['href' => '#admin-utenti', 'label' => 'Utenti'],
+        ['href' => '#admin-rimborsi', 'label' => 'Rimborsi'],
       ];
     ?>
     <div id="adminMobileBackdrop" class="admin-mobile-backdrop md:hidden" hidden></div>

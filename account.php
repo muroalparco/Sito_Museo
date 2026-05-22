@@ -11,15 +11,17 @@ $pdo       = getDB();
 $stmt = $pdo->prepare('SELECT * FROM Utenti WHERE id_utente = ?');
 $stmt->execute([$_SESSION['utente_id']]);
 $utente = $stmt->fetch();
+$saldoUtente = saldoUtenteCorrente($pdo, (int)$_SESSION['utente_id']);
 
 // Ultimi 5 ordini con conteggio biglietti
 $ordini = $pdo->prepare(
     "SELECT o.id_ordine, o.data_acquisto, o.importo_totale, o.stato_pagamento,
+            COALESCE(o.stato_rimborso, 'Nessuno') AS stato_rimborso,
             COUNT(b.id_biglietto) AS num_biglietti
      FROM Ordini o
      LEFT JOIN Biglietti b ON b.id_ordine = o.id_ordine
      WHERE o.id_utente = ?
-     GROUP BY o.id_ordine, o.data_acquisto, o.importo_totale, o.stato_pagamento
+     GROUP BY o.id_ordine, o.data_acquisto, o.importo_totale, o.stato_pagamento, o.stato_rimborso
      ORDER BY o.data_acquisto DESC
      LIMIT 5"
 );
@@ -55,7 +57,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 // Rileggi utente
                 $stmt->execute([$_SESSION['utente_id']]);
                 $utente = $stmt->fetch();
+$saldoUtente = saldoUtenteCorrente($pdo, (int)$_SESSION['utente_id']);
             }
+        }
+    } elseif ($_POST['action'] === 'ricarica_portafoglio') {
+        // La ricarica non viene più accreditata direttamente da questa pagina:
+        // deve passare dal pagamento simulato dedicato al portafoglio.
+        $importo = (float)str_replace(',', '.', $_POST['importo'] ?? '0');
+        $metodo = $_POST['metodo_pagamento'] ?? 'carta';
+        if ($importo <= 0 || $importo > 500 || !in_array($metodo, ['carta', 'paypal'], true)) {
+            $errorMsg = 'Inserisci un importo valido tra 1 e 500 euro e scegli carta o PayPal.';
+        } else {
+            $_SESSION['wallet_topup_prefill'] = [
+                'importo' => number_format($importo, 2, '.', ''),
+                'metodo' => $metodo,
+                'created_at' => time(),
+            ];
+            header('Location: ' . SITE_URL . '/pagamento.php?ricarica_portafoglio=1');
+            exit;
         }
     } elseif ($_POST['action'] === 'change_password') {
         $attuale  = $_POST['pw_attuale']  ?? '';
@@ -81,6 +100,13 @@ $ruoloLabel = ['visitatore' => 'Visitatore', 'operatore' => 'Operatore', 'cassie
 
 include __DIR__ . '/header.php';
 ?>
+
+<style>
+  @media (min-width: 1024px) {
+    .account-tab-area { min-height: 560px; }
+    .account-tab-area > .tab-content > .bg-white { min-height: 560px; }
+  }
+</style>
 
 <!-- Breadcrumb -->
 <div class="bg-avorio-dark border-b border-oro border-opacity-20 py-3">
@@ -109,9 +135,15 @@ include __DIR__ . '/header.php';
           <?= clean($ruoloLabel[$utente['ruolo']] ?? $utente['ruolo']) ?>
         </span>
       </div>
-      <div class="ml-auto hidden md:flex flex-col items-end text-right">
-        <span class="text-gray-500 text-xs font-body uppercase tracking-wide">Membro dal</span>
-        <span class="text-oro font-display text-lg"><?= date('M Y', strtotime($utente['data_registrazione'])) ?></span>
+      <div class="ml-auto hidden md:flex items-stretch gap-3 text-right">
+        <div class="rounded-2xl border border-oro/30 bg-antracite-light/60 px-4 py-3">
+          <span class="block text-gray-500 text-xs font-body uppercase tracking-wide">Saldo portafoglio</span>
+          <span class="block text-oro font-display text-xl font-bold">€ <?= number_format((float)$saldoUtente, 2, ',', '.') ?></span>
+        </div>
+        <div class="rounded-2xl border border-avorio/10 bg-antracite-light/40 px-4 py-3">
+          <span class="block text-gray-500 text-xs font-body uppercase tracking-wide">Membro dal</span>
+          <span class="block text-oro font-display text-lg"><?= date('M Y', strtotime($utente['data_registrazione'])) ?></span>
+        </div>
       </div>
     </div>
   </div>
@@ -121,10 +153,10 @@ include __DIR__ . '/header.php';
 <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
   <?php if ($successMsg): ?>
-  <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="status">✅ <?= clean($successMsg) ?></div>
+  <div class="alert-success floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="status"> <?= clean($successMsg) ?></div>
   <?php endif; ?>
   <?php if ($errorMsg): ?>
-  <div class="alert-error floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="alert">⚠️ <?= clean($errorMsg) ?></div>
+  <div class="alert-error floating-alert p-4 rounded mb-6 text-sm font-body fade-up" role="alert"> <?= clean($errorMsg) ?></div>
   <?php endif; ?>
 
   <div class="grid lg:grid-cols-3 gap-8">
@@ -136,30 +168,30 @@ include __DIR__ . '/header.php';
           <span class="text-xs font-body font-bold uppercase tracking-widest text-antracite-light">Sezioni</span>
         </div>
         <?php foreach ([
-          ['profilo','👤','Il mio profilo'],
-          ['sicurezza','🔐','Sicurezza'],
-          ['ordini','🎟️','I miei ordini'],
+          ['profilo','Il mio profilo'],
+          ['portafoglio','Portafoglio virtuale'],
+          ['sicurezza','Sicurezza'],
+          ['ordini','I miei ordini'],
         ] as $tab): ?>
         <button onclick="showTab('<?= $tab[0] ?>')"
                 id="tab-btn-<?= $tab[0] ?>"
-                class="tab-btn w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-left hover:bg-avorio transition-colors border-b border-avorio-dark last:border-0">
-          <span class="text-lg"><?= $tab[1] ?></span>
-          <span><?= $tab[2] ?></span>
+                class="account-menu-item tab-btn w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-left hover:bg-avorio transition-colors border-b border-avorio-dark">
+          <span><?= $tab[1] ?></span>
         </button>
         <?php endforeach; ?>
         <a href="<?= SITE_URL ?>/logout.php"
-           class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-red-500 hover:bg-red-50 transition-colors border-t border-avorio-dark">
-          <span class="text-lg">🚪</span> <span>Logout</span>
+           class="account-menu-item w-full flex items-center gap-3 px-5 py-4 text-sm font-body text-red-500 hover:bg-red-50 transition-colors border-b border-avorio-dark">
+          <span>Logout</span>
         </a>
         <a href="<?= SITE_URL ?>/elimina_account.php"
-           class="w-full flex items-center gap-3 px-5 py-4 text-sm font-body font-bold text-red-800 bg-red-100 hover:bg-red-200 transition-colors border-t border-red-200">
-          <span class="text-lg">🗑️</span> <span>Elimina account</span>
+           class="account-menu-item w-full flex items-center gap-3 px-5 py-4 text-sm font-body font-bold text-red-800 bg-red-100 hover:bg-red-200 transition-colors border-t border-red-200">
+          <span>Elimina account</span>
         </a>
       </nav>
     </aside>
 
     <!-- main -->
-    <div class="lg:col-span-2 space-y-6">
+    <div class="lg:col-span-2 space-y-6 account-tab-area">
 
       <!-- sezione profilo -->
       <div id="tab-profilo" class="tab-content">
@@ -203,6 +235,58 @@ include __DIR__ . '/header.php';
         </div>
       </div>
 
+
+
+      <!-- sezione portafoglio -->
+      <div id="tab-portafoglio" class="tab-content hidden">
+        <div class="bg-white rounded-xl shadow border border-avorio-dark overflow-hidden">
+          <div class="px-4 sm:px-6 py-4 border-b border-avorio-dark bg-avorio">
+            <h2 class="font-display text-xl font-semibold text-antracite">Portafoglio virtuale</h2>
+            <p class="text-sm text-gray-600 mt-1">Usa il saldo per pagare biglietti e servizi opzionali.</p>
+          </div>
+          <div class="px-4 sm:px-6 py-6 space-y-6">
+            <div class="wallet-balance-card rounded-2xl bg-antracite text-avorio p-6">
+              <p class="text-xs uppercase tracking-widest text-oro mb-2">Saldo disponibile</p>
+              <p class="font-display text-4xl font-bold">€ <?= number_format((float)$saldoUtente, 2, ',', '.') ?></p>
+            </div>
+
+            <form method="POST" action="<?= SITE_URL ?>/pagamento.php" class="wallet-recharge-form space-y-5">
+              <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
+              <input type="hidden" name="avvia_ricarica_portafoglio" value="1">
+
+              <div>
+                <label class="block text-sm font-body font-bold text-antracite mb-1">Importo ricarica</label>
+                <input type="number" name="importo" min="1" max="500" step="0.01" required placeholder="25.00"
+                       class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+              </div>
+
+              <div class="payment-method-picker">
+                <span class="block text-sm font-body font-bold text-antracite mb-2">Metodo di ricarica</span>
+                <div class="payment-method-grid wallet-payment-grid">
+                  <label class="payment-method-option">
+                    <input type="radio" name="metodo_pagamento" value="carta" checked required>
+                    <span>
+                      <strong>Carta di credito</strong>
+                      <small>Pagamento simulato con dati carta.</small>
+                    </span>
+                  </label>
+                  <label class="payment-method-option">
+                    <input type="radio" name="metodo_pagamento" value="paypal" required>
+                    <span>
+                      <strong>PayPal</strong>
+                      <small>Simulazione accesso PayPal.</small>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-oro w-full px-6 py-3 rounded font-body text-sm uppercase tracking-wide">Vai al pagamento</button>
+              <p class="text-xs text-gray-500">La ricarica viene accreditata solo dopo il pagamento simulato.</p>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <!-- sezione sicurezza -->
       <div id="tab-sicurezza" class="tab-content hidden">
         <div class="bg-white rounded-xl shadow border border-avorio-dark">
@@ -242,7 +326,7 @@ include __DIR__ . '/header.php';
 
           <?php if (empty($ultimiOrdini)): ?>
           <div class="px-6 py-12 text-center">
-            <div class="text-5xl mb-4">🎟️</div>
+            <div class="text-5xl mb-4"></div>
             <p class="text-gray-400 font-body text-sm">Nessun ordine ancora.</p>
             <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-oro inline-block mt-4 px-6 py-2.5 rounded font-body text-sm uppercase tracking-wide">
               Scopri le mostre
@@ -261,10 +345,14 @@ include __DIR__ . '/header.php';
               </div>
               <div class="text-right flex-shrink-0">
                 <div class="font-display text-lg font-bold text-oro">€<?= number_format($ord['importo_totale'], 2, ',', '.') ?></div>
+                <?php $ordineRimborsato = strcasecmp((string)($ord['stato_rimborso'] ?? 'Nessuno'), 'Accettato') === 0; ?>
+                <?php if ($ordineRimborsato): ?>
+                  <div class="text-xs text-red-700 font-bold mt-1">Rimborsato</div>
+                <?php endif; ?>
                 <div class="flex flex-col items-end gap-1">
                   <a href="ordine_dettaglio.php?id=<?= (int)$ord['id_ordine'] ?>"
                      class="text-xs text-acciaio hover:text-oro transition-colors font-body">Dettagli →</a>
-                  <?php if (($ord['stato_pagamento'] ?? '') === 'Non pagato'): ?>
+                  <?php if (!$ordineRimborsato && ($ord['stato_pagamento'] ?? '') === 'Non pagato'): ?>
                     <a href="<?= SITE_URL ?>/pagamento.php?ordine=<?= (int)$ord['id_ordine'] ?>"
                        class="text-xs text-oro hover:underline font-body font-bold">Paga →</a>
                   <?php endif; ?>

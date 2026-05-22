@@ -26,6 +26,9 @@ try {
     if (!$ordine) {
         rispondiErrorePdf('Ordine non trovato.', 404);
     }
+    if (!ordineAutorizzato($pdo, $ordine)) {
+        rispondiErrorePdf('Non sei autorizzato a scaricare questo ordine.', 403);
+    }
 
     $stmtInfo = $pdo->prepare(" 
         SELECT

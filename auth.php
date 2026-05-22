@@ -198,6 +198,145 @@ function requireCassiere(string $redirect = 'index.php'): void {
     }
 }
 
+
+
+/* Helpers database / sicurezza ordini / portafoglio */
+if (!function_exists('colonnaEsiste')) {
+    function colonnaEsiste(PDO $pdo, string $tabella, string $colonna): bool {
+        try {
+            $stmt = $pdo->prepare("SHOW COLUMNS FROM `$tabella` LIKE ?");
+            $stmt->execute([$colonna]);
+            if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+                return true;
+            }
+        } catch (Throwable $e) {
+            // Proviamo il fallback sotto: su alcuni hosting SHOW COLUMNS può fallire in modo non bloccante.
+        }
+
+        try {
+            $stmt = $pdo->query("SELECT `$colonna` FROM `$tabella` LIMIT 1");
+            return $stmt !== false;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+}
+
+if (!function_exists('preparaPortafoglioUtente')) {
+    function preparaPortafoglioUtente(PDO $pdo): void {
+        static $done = false;
+        if ($done) return;
+
+        // Il sito usa SOLO Utenti.saldo_utente.
+        // Se su vecchie versioni era stato usato saldo_portafoglio, copiamo il valore una sola volta
+        // quando saldo_utente è ancora a zero. Non aggiungiamo nuove colonne inutili.
+        try {
+            if ($pdo->inTransaction()) {
+                if (!colonnaEsiste($pdo, 'Utenti', 'saldo_utente')) {
+                    throw new RuntimeException('Il portafoglio virtuale non e ancora configurato nel database.');
+                }
+                $done = true;
+                return;
+            }
+
+            if (!colonnaEsiste($pdo, 'Utenti', 'saldo_utente')) {
+                try {
+                    $pdo->exec("ALTER TABLE Utenti ADD COLUMN saldo_utente DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+                } catch (Throwable $e) {
+                    // Se il DB non permette ALTER, l'errore reale emergerà nelle query successive.
+                }
+            }
+
+            if (colonnaEsiste($pdo, 'Utenti', 'saldo_utente') && colonnaEsiste($pdo, 'Utenti', 'saldo_portafoglio')) {
+                $pdo->exec("UPDATE Utenti SET saldo_utente = saldo_portafoglio WHERE saldo_utente = 0 AND saldo_portafoglio > 0");
+            }
+
+            $done = colonnaEsiste($pdo, 'Utenti', 'saldo_utente');
+        } catch (Throwable $e) {
+            // Non blocchiamo il sito: le funzioni di pagamento gestiranno eventuali errori.
+        }
+    }
+}
+
+if (!function_exists('saldoUtenteCorrente')) {
+    function saldoUtenteCorrente(?PDO $pdo = null, ?int $idUtente = null): float {
+        if ($idUtente === null) {
+            $idUtente = (int)($_SESSION['utente_id'] ?? 0);
+        }
+        if ($idUtente <= 0) return 0.0;
+
+        try {
+            $pdo = $pdo ?: getDB();
+            preparaPortafoglioUtente($pdo);
+            $stmt = $pdo->prepare('SELECT saldo_utente FROM Utenti WHERE id_utente = ? LIMIT 1');
+            $stmt->execute([$idUtente]);
+            $saldo = $stmt->fetchColumn();
+            return $saldo === false ? 0.0 : (float)$saldo;
+        } catch (Throwable $e) {
+            return 0.0;
+        }
+    }
+}
+
+if (!function_exists('ricaricaSaldoUtente')) {
+    function ricaricaSaldoUtente(PDO $pdo, int $idUtente, float $importo): void {
+        if ($idUtente <= 0 || $importo <= 0) {
+            throw new RuntimeException('Importo non valido.');
+        }
+        preparaPortafoglioUtente($pdo);
+        try {
+            $stmt = $pdo->prepare('UPDATE Utenti SET saldo_utente = saldo_utente + ? WHERE id_utente = ?');
+            $stmt->execute([$importo, $idUtente]);
+        } catch (Throwable $e) {
+            throw new RuntimeException('Il portafoglio virtuale non è disponibile. Controlla la colonna Utenti.saldo_utente.');
+        }
+    }
+}
+
+if (!function_exists('addebitaSaldoUtente')) {
+    function addebitaSaldoUtente(PDO $pdo, int $idUtente, float $importo): void {
+        if ($idUtente <= 0 || $importo < 0) {
+            throw new RuntimeException('Importo non valido.');
+        }
+        preparaPortafoglioUtente($pdo);
+        try {
+            $stmt = $pdo->prepare('SELECT saldo_utente FROM Utenti WHERE id_utente = ? FOR UPDATE');
+            $stmt->execute([$idUtente]);
+            $saldo = $stmt->fetchColumn();
+        } catch (Throwable $e) {
+            throw new RuntimeException('Il portafoglio virtuale non è disponibile. Controlla la colonna Utenti.saldo_utente.');
+        }
+
+        if ($saldo === false) {
+            throw new RuntimeException('Utente non trovato.');
+        }
+        if ((float)$saldo + 0.0001 < $importo) {
+            throw new RuntimeException('Saldo insufficiente nel portafoglio virtuale.');
+        }
+        $stmt = $pdo->prepare('UPDATE Utenti SET saldo_utente = saldo_utente - ? WHERE id_utente = ?');
+        $stmt->execute([$importo, $idUtente]);
+    }
+}
+
+if (!function_exists('ordineAutorizzato')) {
+    function ordineAutorizzato($pdoOrOrdine, ?array $ordine = null): bool {
+        // Compatibile sia con ordineAutorizzato($ordine) sia con ordineAutorizzato($pdo, $ordine)
+        if ($ordine === null && is_array($pdoOrOrdine)) {
+            $ordine = $pdoOrOrdine;
+        }
+        if (!$ordine) return false;
+        if (isAdmin() || isCassiere()) return true;
+        $idUtenteOrdine = isset($ordine['id_utente']) ? (int)$ordine['id_utente'] : 0;
+        $idUtenteSessione = (int)($_SESSION['utente_id'] ?? 0);
+        if ($idUtenteOrdine > 0 && $idUtenteSessione > 0 && $idUtenteOrdine === $idUtenteSessione) return true;
+        $codice = (string)($ordine['codice_recupero'] ?? '');
+        if ($codice !== '' && isset($_SESSION['ordini_recuperati']) && is_array($_SESSION['ordini_recuperati'])) {
+            return in_array($codice, $_SESSION['ordini_recuperati'], true);
+        }
+        return false;
+    }
+}
+
 /* CSRF */
 function csrfToken(): string {
     if (empty($_SESSION['csrf_token'])) {

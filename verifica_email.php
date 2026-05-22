@@ -91,7 +91,7 @@ include __DIR__ . '/header.php';
     <div class="max-w-xl mx-auto">
         <section class="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 md:p-10">
             <div class="text-center mb-8">
-                <img src="<?= SITE_URL ?>/img/logo.png" alt="Logo Museo Storico Severi" class="h-20 w-auto mx-auto mb-6 object-contain">
+                <img src="<?= SITE_URL ?>/img/logo.svg" alt="Logo Museo Storico Severi" class="h-20 w-auto mx-auto mb-6 object-contain">
                 <h1 class="font-display text-3xl md:text-4xl font-bold text-antracite mb-3">Verifica il tuo account</h1>
                 <p class="text-gray-600">
                     Inserisci il codice a 6 cifre ricevuto via email. Se non è arrivato, puoi rigenerarlo.
