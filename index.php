@@ -10,6 +10,7 @@ $esposizioni = [];
 $statistiche = [
     'esposizioni_attive' => 0,
     'servizi_extra'      => 0,
+    'visitatori_anno'    => 0,
 ];
 
 function indexEsposizioniSupportaEmoji(PDO $pdo): bool {
@@ -42,13 +43,22 @@ try {
     $stmtStats = $pdo->query(
         "SELECT
             (SELECT COUNT(*) FROM Esposizioni WHERE stato = 'Pubblicata') AS esposizioni_attive,
-            (SELECT COUNT(*) FROM Servizi_Opzionali) AS servizi_extra"
+            (SELECT COUNT(*) FROM Servizi_Opzionali) AS servizi_extra,
+            (
+                SELECT COUNT(*)
+                FROM Biglietti b
+                INNER JOIN Ordini o ON o.id_ordine = b.id_ordine
+                WHERE o.stato_pagamento = 'Pagato'
+                  AND COALESCE(o.stato_rimborso, 'Nessuno') <> 'Accettato'
+                  AND YEAR(COALESCE(b.data_validita, o.data_acquisto)) = YEAR(CURDATE())
+            ) AS visitatori_anno"
     );
     $rowStats = $stmtStats->fetch();
 
     if ($rowStats) {
         $statistiche['esposizioni_attive'] = (int) $rowStats['esposizioni_attive'];
         $statistiche['servizi_extra']      = (int) $rowStats['servizi_extra'];
+        $statistiche['visitatori_anno']    = (int) $rowStats['visitatori_anno'];
     }
 } catch (Exception $e) {
     $esposizioni = [];
@@ -81,6 +91,95 @@ if (isLogged()) {
 include __DIR__ . '/header.php';
 ?>
 
+<style>
+  .home-stats-section {
+    background: linear-gradient(180deg, #eef7fd 0%, #ffffff 100%);
+    padding: 2.6rem 1rem 2.8rem;
+    border-top: 1px solid rgba(142, 197, 232, .18);
+  }
+
+  .home-stats-wrap {
+    max-width: 1120px;
+    margin: 0 auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .home-stat-card {
+    min-height: 118px;
+    display: flex;
+    align-items: flex-start;
+    gap: .9rem;
+    padding: 1.05rem;
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, .96);
+    border: 1px solid rgba(142, 197, 232, .42);
+    box-shadow: 0 14px 34px rgba(16, 39, 68, .10);
+  }
+
+  .home-stat-icon {
+    width: 2.55rem;
+    height: 2.55rem;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #e4f5ff, #fff7e6);
+    font-size: 1.25rem;
+  }
+
+  .home-stat-card strong {
+    display: block;
+    font-family: Georgia, serif;
+    font-size: clamp(1.55rem, 2.5vw, 2.05rem);
+    line-height: 1;
+    color: #102744;
+  }
+
+  .home-stat-card p {
+    margin: .35rem 0 .2rem;
+    color: #1c5d8b;
+    font-size: .72rem;
+    line-height: 1.25;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 900;
+  }
+
+  .home-stat-card small {
+    display: block;
+    color: #5f7286;
+    font-size: .78rem;
+    line-height: 1.35;
+  }
+
+  @media (max-width: 900px) {
+    .home-stats-wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 540px) {
+    .home-stats-section { padding: 1.5rem .9rem 1.8rem; }
+    .home-stats-wrap {
+      transform: none;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .75rem;
+    }
+    .home-stat-card {
+      min-height: 132px;
+      flex-direction: column;
+      gap: .55rem;
+      padding: .85rem;
+    }
+    .home-stat-icon { width: 2.2rem; height: 2.2rem; border-radius: .85rem; }
+    .home-stat-card strong { font-size: 1.55rem; }
+    .home-stat-card p { font-size: .65rem; letter-spacing: .06em; }
+    .home-stat-card small { font-size: .72rem; }
+  }
+</style>
+
 <main id="main-content" class="flex-1">
 
 <!-- hero principale  -->
@@ -89,8 +188,8 @@ include __DIR__ . '/header.php';
   <div class="absolute inset-0 opacity-10"
        style="background-image: repeating-linear-gradient(45deg, #8EC5E8 0, #8EC5E8 1px, transparent 0, transparent 50%); background-size: 20px 20px;"></div>
 
-  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-28 lg:py-36">
-    <div class="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 lg:py-28">
+    <div class="max-w-4xl">
 
       <!-- testo hero -->
       <div>
@@ -123,51 +222,30 @@ include __DIR__ . '/header.php';
         </div>
       </div>
 
-      <!-- logo decorativo -->
-      <div class="flex justify-center items-center order-first md:order-none">
-        <div class="relative h-52 sm:h-64 md:h-72 lg:h-80 w-full flex items-center justify-center">
-          <img 
-            src="<?= SITE_URL ?>/img/logo-lcp.webp"
-            srcset="<?= SITE_URL ?>/img/logo-lcp.webp 256w, <?= SITE_URL ?>/img/logo-256.webp 144w"
-            sizes="(max-width: 767px) 220px, 256px"
-            width="256"
-            height="192"
-            alt="Logo Museo Storico Severi" 
-            class="h-full w-auto object-contain drop-shadow-hero"
-            decoding="async"
-            loading="eager"
-            fetchpriority="high"
-          >
-        </div>
-      </div>
-
     </div>
-  </div>
-
-  <!-- onda decorativa -->
-  <div class="absolute bottom-0 left-0 right-0">
-    <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <path d="M0 60 C360 0, 1080 0, 1440 60 L1440 60 L0 60 Z" fill="#F7FBFF"/>
-    </svg>
   </div>
 </section>
 
 <!-- dati sito -->
-<div class="bg-avorio-dark py-8 border-y border-oro border-opacity-30">
-  <div class="max-w-5xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
+<section class="home-stats-section" aria-label="Numeri del museo">
+  <div class="home-stats-wrap">
     <?php foreach ([
-      [$statistiche['esposizioni_attive'], 'Esposizioni attive'],
-      ['10.000+', 'Visitatori l\'anno'],
-      [$statistiche['servizi_extra'], 'Servizi extra'],
-      ['2020', 'Anno di fondazione'],
+      ['🏛️', $statistiche['esposizioni_attive'], 'Esposizioni attive', 'Mostre pubblicate e prenotabili'],
+      ['👥', number_format((int) $statistiche['visitatori_anno'], 0, ',', '.'), 'Visitatori quest’anno', 'Biglietti pagati nell’anno corrente'],
+      ['🎧', $statistiche['servizi_extra'], 'Servizi extra', 'Opzioni aggiuntive per la visita'],
+      ['⭐', '2020', 'Anno di fondazione', 'Il punto di partenza del progetto'],
     ] as $s): ?>
-    <div>
-      <div class="font-display text-3xl font-bold text-oro"><?= clean((string) $s[0]) ?></div>
-      <div class="font-body text-xs text-antracite-light uppercase tracking-wide mt-1"><?= clean($s[1]) ?></div>
-    </div>
+    <article class="home-stat-card">
+      <span class="home-stat-icon" aria-hidden="true"><?= clean($s[0]) ?></span>
+      <div>
+        <strong><?= clean((string) $s[1]) ?></strong>
+        <p><?= clean($s[2]) ?></p>
+        <small><?= clean($s[3]) ?></small>
+      </div>
+    </article>
     <?php endforeach; ?>
   </div>
-</div>
+</section>
 
 <!-- esposizioni in evidenza  -->
 <section class="py-14 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

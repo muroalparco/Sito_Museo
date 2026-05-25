@@ -251,7 +251,7 @@ include __DIR__ . '/header.php';
                 <a href="<?= SITE_URL ?>/login.php?password_aggiornata=1" class="block text-center w-full bg-oro text-antracite font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition">
                     Vai al login
                 </a>
-                <script>
+                <script nonce="<?= cspNonce() ?>">
                     window.setTimeout(function () {
                         window.location.href = '<?= SITE_URL ?>/login.php?password_aggiornata=1';
                     }, 3000);

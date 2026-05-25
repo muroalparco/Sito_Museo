@@ -1217,7 +1217,7 @@ include __DIR__ . '/header.php';
 </main>
 
 
-<script>
+<script nonce="<?= cspNonce() ?>">
 (function () {
   function formattaNumeroCarta(input) {
     var soloNumeri = input.value.replace(/\D/g, '').slice(0, 19);

@@ -539,3 +539,110 @@
 [2026-05-22 12:58:56] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
 [2026-05-22 12:58:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
 [2026-05-22 12:58:56] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-22 13:21:41] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 13:21:41] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-22 13:21:41] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 13:21:42] mail() OK verso andrea.costabano@gmail.com
+[2026-05-22 13:34:28] Tentativo invio a piccolodaniel07@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 13:34:28] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 13:34:29] mail() OK verso piccolodaniel07@gmail.com
+[2026-05-22 13:39:14] Tentativo invio a pavanello.daniel070@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-22 13:39:14] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-22 13:39:15] mail() OK verso pavanello.daniel070@gmail.com
+[2026-05-23 17:01:50] Tentativo invio a alexbularga2007@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-23 17:01:50] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-23 17:01:51] mail() OK verso alexbularga2007@gmail.com
+[2026-05-25 03:22:48] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 03:22:48] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 03:22:49] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:11:45] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:11:45] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:11:45] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:12:48] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:12:48] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:12:48] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:12:52] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:12:52] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:12:52] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:12:57] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:12:57] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:12:58] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:13:12] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:13:12] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:13:12] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:16:45] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/museo/PHPMailer/src
+[2026-05-25 09:16:45] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:16:45] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:31:03] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 09:31:03] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:31:03] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:33:34] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 09:33:34] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:33:34] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 09:37:41] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 09:37:41] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 09:37:41] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 10:20:36] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 10:20:36] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 10:20:36] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 10:32:00] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 10:32:00] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 10:32:00] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 10:40:00] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 10:40:00] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 10:40:00] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 10:43:57] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 10:43:57] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 10:43:57] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 10:58:46] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 10:58:46] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 10:58:46] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 18:16:54] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:16:54] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:16:54] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 18:24:01] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:24:01] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:24:02] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 18:41:06] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:41:06] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:41:06] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 18:46:35] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:46:35] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-25 18:46:35] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:46:35] mail() OK verso muroalparco@gmail.com
+[2026-05-25 18:54:11] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:54:11] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:54:11] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 18:54:56] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 18:54:56] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-25 18:54:56] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 18:54:56] mail() OK verso muroalparco@gmail.com
+[2026-05-25 19:04:32] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:04:32] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-25 19:04:32] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:04:32] mail() OK verso muroalparco@gmail.com
+[2026-05-25 19:05:12] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:05:12] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:05:13] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 19:06:00] Tentativo invio a muroalparco@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:06:00] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:06:00] mail() OK verso muroalparco@gmail.com
+[2026-05-25 19:54:27] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:54:27] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:54:28] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 19:57:00] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:57:00] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:57:00] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 19:57:20] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 19:57:20] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 19:57:21] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 20:01:30] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 20:01:30] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 20:01:30] mail() OK verso sebastianocatalano670@gmail.com
+[2026-05-25 20:05:25] Tentativo invio a andrea.costabano@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 20:05:25] Server online: allegati rimossi dall'invio per evitare timeout/caricamento infinito.
+[2026-05-25 20:05:25] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 20:05:25] mail() OK verso andrea.costabano@gmail.com
+[2026-05-25 20:26:26] Tentativo invio a sebastianocatalano670@gmail.com | SMTP_ACTIVE=true | PHPMailer=/membri/museostoricoseveri/PHPMailer/src
+[2026-05-25 20:26:26] Invio rapido attivo: provo prima mail() per evitare attese SMTP.
+[2026-05-25 20:26:27] mail() OK verso sebastianocatalano670@gmail.com

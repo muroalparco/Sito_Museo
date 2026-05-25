@@ -304,7 +304,7 @@ include __DIR__ . '/header.php';
     </div>
 </main>
 
-<script>
+<script nonce="<?= cspNonce() ?>">
 function togglePasswordVisibility(inputId, button) {
     const input = document.getElementById(inputId);
     if (!input) return;

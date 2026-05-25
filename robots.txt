@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /account.php
+Disallow: /cassa.php
+Disallow: /valida_biglietti.php
+Disallow: /ordine_dettaglio.php
+Disallow: /ordine_pdf.php
+Disallow: /ricevuta_pdf.php
+Disallow: /biglietti.php
+Disallow: /logout.php
+Disallow: /elimina_account.php
+
+Sitemap: https://museostoricoseveri.altervista.org/sitemap.xml

@@ -59,6 +59,32 @@ include __DIR__ . '/header.php';
   .ticket-card {
     break-inside: avoid;
     page-break-inside: avoid;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  }
+
+  .ticket-card.ticket-expired {
+    opacity: .88;
+  }
+
+  .ticket-digital-band {
+    background: linear-gradient(135deg, #102744, #193a5c);
+    color: #fffdf5;
+  }
+
+  .ticket-digital-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+  }
+
+  .ticket-digital-meta > div {
+    border-radius: .9rem;
+    background: #f5f9fc;
+    padding: .75rem;
+  }
+
+  @media (max-width: 640px) {
+    .ticket-digital-meta { grid-template-columns: 1fr; }
   }
 
   .ticket-page {
@@ -169,6 +195,7 @@ include __DIR__ . '/header.php';
           <p class="font-display text-3xl font-bold text-oro">€ <?= number_format((float)$ordine['importo_totale'], 2, ',', '.') ?></p>
           <div class="mt-3 flex flex-wrap gap-2 md:justify-end print:hidden no-pdf">
             <button type="button" onclick="window.print()" class="btn-outline px-5 py-2 rounded text-sm">Stampa</button>
+            <a href="<?= SITE_URL ?>/ricevuta_pdf.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-outline px-5 py-2 rounded text-sm inline-block">Ricevuta PDF</a>
             <a href="<?= SITE_URL ?>/scarica_pdf.php?codice=<?= urlencode($ordine['codice_recupero']) ?>" class="btn-oro px-5 py-2 rounded text-sm inline-block">Scarica PDF</a>
           </div>
         </div>
@@ -186,19 +213,26 @@ include __DIR__ . '/header.php';
               if ($isOrdineClasse && $categoriaBiglietto === '' && (float)$b['prezzo_lordo'] == 0.0 && (float)$b['sconto_applicato'] == 0.0) {
                   $categoriaBiglietto = 'Docente accompagnatore';
               }
+              $bigliettoScaduto = !$ordineRimborsato && ($b['stato'] ?? '') === 'Valido' && (string)$b['data_validita'] < date('Y-m-d');
             ?>
-            <article class="ticket-card bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden break-inside-avoid">
-              <div class="h-2 bg-oro"></div>
+            <article class="ticket-card <?= $bigliettoScaduto ? 'ticket-expired' : '' ?> bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden break-inside-avoid">
+              <div class="ticket-digital-band px-6 py-4 flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase tracking-widest text-acciaio font-bold">Museo Storico Severi</p>
+                  <p class="font-display text-xl font-bold">Biglietto digitale</p>
+                </div>
+                <span class="text-xs uppercase tracking-widest text-avorio/75">Ticket</span>
+              </div>
               <div class="p-6">
                 <div class="ticket-card__header mb-5">
                   <div class="ticket-card__identity">
                     <p class="text-xs uppercase tracking-widest text-gray-500 mb-1">Codice biglietto</p>
                     <h2 class="ticket-card__code font-display text-2xl font-bold text-antracite mb-3"><?= clean($b['codice_univoco']) ?></h2>
                   <?php
-                    $statoVisuale = $ordineRimborsato ? 'Rimborsato' : $b['stato'];
+                    $statoVisuale = $ordineRimborsato ? 'Rimborsato' : ($bigliettoScaduto ? 'Scaduto' : $b['stato']);
                     $ticketBadge = $statoVisuale === 'Valido'
                         ? 'bg-green-100 text-green-800'
-                        : ($statoVisuale === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : ($statoVisuale === 'Rimborsato' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600'));
+                        : ($statoVisuale === 'Scaduto' ? 'bg-orange-100 text-orange-800' : ($statoVisuale === 'Non pagato' ? 'bg-yellow-100 text-yellow-800' : ($statoVisuale === 'Rimborsato' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-600')));
                   ?>
                     <span class="inline-flex px-3 py-1 rounded-full text-xs font-bold <?= $ticketBadge ?>">
                       <?= clean($statoVisuale) ?>
@@ -215,16 +249,16 @@ include __DIR__ . '/header.php';
                   <?php endif; ?>
                 </div>
 
-                <div class="space-y-3 text-sm text-gray-600">
-                  <div><strong>Tipo:</strong> <?= $b['tipo'] === 'base' ? 'Ingresso Museo' : 'Esposizione' ?></div>
-                  <div><strong>Percorso:</strong> <?= clean($b['esposizione'] ?? 'Museo Storico Severi') ?></div>
-                  <div><strong>Data:</strong> <?= date('d/m/Y', strtotime($b['data_validita'])) ?><?= $b['ora_ingresso'] ? ' alle ' . clean(substr($b['ora_ingresso'], 0, 5)) : '' ?></div>
-                  <div><strong>Categoria:</strong> <?= clean($categoriaBiglietto ?: '—') ?></div>
-                  <div><strong>Servizi:</strong> <?= clean($b['servizi'] ?? 'Nessun servizio opzionale') ?></div>
+                <div class="ticket-digital-meta text-sm text-gray-600">
+                  <div><span class="block text-xs uppercase tracking-widest text-gray-400">Tipo</span><strong><?= $b['tipo'] === 'base' ? 'Ingresso Museo' : 'Esposizione' ?></strong></div>
+                  <div><span class="block text-xs uppercase tracking-widest text-gray-400">Percorso</span><strong><?= clean($b['esposizione'] ?? 'Museo Storico Severi') ?></strong></div>
+                  <div><span class="block text-xs uppercase tracking-widest text-gray-400">Data</span><strong><?= date('d/m/Y', strtotime($b['data_validita'])) ?><?= $b['ora_ingresso'] ? ' alle ' . clean(substr($b['ora_ingresso'], 0, 5)) : '' ?></strong></div>
+                  <div><span class="block text-xs uppercase tracking-widest text-gray-400">Categoria</span><strong><?= clean($categoriaBiglietto ?: '—') ?></strong></div>
+                  <div class="sm:col-span-2"><span class="block text-xs uppercase tracking-widest text-gray-400">Servizi</span><strong><?= clean($b['servizi'] ?? 'Nessun servizio opzionale') ?></strong></div>
                 </div>
 
                 <div class="mt-6 pt-5 border-t border-avorio-dark flex items-center justify-between">
-                  <span class="text-xs text-gray-500"><?= $ordineRimborsato ? 'Biglietto rimborsato: non presentare all’ingresso' : "Presenta questo codice all'ingresso" ?></span>
+                  <span class="text-xs text-gray-500"><?= $ordineRimborsato ? 'Biglietto rimborsato: non presentare all’ingresso' : ($bigliettoScaduto ? 'Biglietto scaduto: resta nello storico' : "Presenta questo codice all'ingresso") ?></span>
                   <span class="font-display text-xl font-bold text-oro">€ <?= number_format($totaleTicket, 2, ',', '.') ?></span>
                 </div>
               </div>

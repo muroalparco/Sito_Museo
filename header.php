@@ -9,6 +9,10 @@ $tailwindVersion = file_exists($tailwindPath) ? filemtime($tailwindPath) : $cssV
 $fixesPath = __DIR__ . '/assets/css/fixes.css';
 $fixesVersion = file_exists($fixesPath) ? filemtime($fixesPath) : $cssVersion;
 $homeCriticalPath = __DIR__ . '/assets/css/home-critical.css';
+$assistenteCssPath = __DIR__ . '/assets/css/assistente_ai.css';
+$assistenteCssVersion = file_exists($assistenteCssPath) ? filemtime($assistenteCssPath) : $cssVersion;
+$accessibilitaCssPath = __DIR__ . '/assets/css/accessibilita.css';
+$accessibilitaCssVersion = file_exists($accessibilitaCssPath) ? filemtime($accessibilitaCssPath) : $cssVersion;
 $currentPage = basename($_SERVER['PHP_SELF']);
 $isAdminPage = ($currentPage === 'admin.php' && isAdmin());
 
@@ -18,6 +22,8 @@ $metaDescriptions = [
     'novita.php' => 'Leggi le novità del Museo Storico Severi: aggiornamenti, iniziative, eventi e comunicazioni per visitatori, studenti e docenti.',
     'chi_siamo.php' => 'Scopri il progetto Museo Storico Severi, nato come laboratorio didattico per unire storia, tecnologia, accessibilità e competenze digitali.',
     'info.php' => 'Consulta informazioni, tariffe, riduzioni, servizi opzionali e indicazioni utili per organizzare la visita al Museo Storico Severi.',
+    'mappa.php' => 'Consulta la mappa del Museo Storico Severi, le sale espositive, i percorsi consigliati e i servizi utili durante la visita.',
+    'features.php' => 'Scopri le features del Museo Storico Severi: prenotazioni, biglietti, QR code, pagamenti, rimborsi, dashboard, admin, export CSV e assistente virtuale.',
     'prenota.php' => 'Prenota online i biglietti per il Museo Storico Severi scegliendo data, fascia oraria, categoria e servizi aggiuntivi.',
     'prenota_docente.php' => 'Prenota una visita scolastica al Museo Storico Severi indicando docente, classe, studenti, data e fascia oraria.',
     'recupera_ordine.php' => 'Recupera il tuo ordine del Museo Storico Severi inserendo il codice ricevuto e consulta o ristampa i biglietti acquistati.',
@@ -35,18 +41,60 @@ $metaDescriptions = [
     '404.php' => 'Pagina non trovata sul sito del Museo Storico Severi: torna alla home o consulta le sezioni principali del museo.'
 ];
 $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo Storico Severi: sito per informazioni, esposizioni, tariffe, prenotazioni online, ordini e biglietti del percorso museale.';
+
+$seoTitles = [
+    'index.php' => 'Museo Storico Severi | Biglietti e mostre',
+    'chi_siamo.php' => 'Chi siamo | Museo Storico Severi',
+    'esposizioni.php' => 'Esposizioni | Museo Storico Severi',
+    'novita.php' => 'Novità | Museo Storico Severi',
+    'info.php' => 'Info e tariffe | Museo Storico Severi',
+    'mappa.php' => 'Mappa e percorso guidato | Museo Storico Severi',
+    'features.php' => 'Features | Museo Storico Severi',
+    'prenota.php' => 'Prenota biglietti | Museo Storico Severi',
+    'prenota_docente.php' => 'Prenotazione docenti | Museo Storico Severi',
+    'recupera_ordine.php' => 'Recupera ordine | Museo Storico Severi',
+    'login.php' => 'Accesso utenti | Museo Storico Severi',
+    'registrazione.php' => 'Registrazione | Museo Storico Severi',
+    'account.php' => 'Area personale | Museo Storico Severi',
+    'admin.php' => 'Area amministratore | Museo Storico Severi',
+    'cassa.php' => 'Area cassa | Museo Storico Severi',
+    'valida_biglietti.php' => 'Validazione biglietti | Museo Storico Severi',
+    '404.php' => 'Pagina non trovata | Museo Storico Severi',
+];
+$seoTitle = $pageTitleSeo ?? $seoTitles[$currentPage] ?? clean(($pageTitle ?? SITE_NAME) . ' | ' . SITE_NAME);
+
+$publicIndexPages = [
+    'index.php',
+    'chi_siamo.php',
+    'esposizioni.php',
+    'novita.php',
+    'info.php',
+    'mappa.php',
+    'features.php',
+    'prenota.php',
+    'prenota_docente.php',
+    'recupera_ordine.php',
+    'admin.php',
+];
+$robotsContent = in_array($currentPage, $publicIndexPages, true) ? 'index, follow' : 'noindex, nofollow';
+
+$canonicalPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$canonicalPath = preg_replace('#/+#', '/', $canonicalPath);
+if ($canonicalPath === '/' || $canonicalPath === '/index.php') {
+    $canonicalUrl = rtrim(SITE_URL, '/') . '/';
+} else {
+    $canonicalUrl = rtrim(SITE_URL, '/') . '/' . ltrim($canonicalPath, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= clean($pageTitle ?? SITE_NAME) ?> — <?= SITE_NAME ?></title>
+  <title><?= clean($seoTitle) ?></title>
   <meta name="description" content="<?= clean($metaDescription) ?>">
-
-  <?php if ($currentPage === 'index.php'): ?>
-    <link rel="preload" as="image" href="<?= SITE_URL ?>/img/logo-lcp.webp" imagesrcset="<?= SITE_URL ?>/img/logo-lcp.webp 256w, <?= SITE_URL ?>/img/logo-256.webp 144w" imagesizes="(max-width: 767px) 220px, 256px" type="image/webp" fetchpriority="high">
-  <?php endif; ?>
+  <meta name="robots" content="<?= clean($robotsContent) ?>">
+  <link rel="canonical" href="<?= clean($canonicalUrl) ?>">
 
   <!-- Font di sistema: nessuna richiesta esterna -->
 
@@ -68,6 +116,13 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/style.css?v=<?= $cssVersion ?>">
     <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/fixes.css?v=<?= $fixesVersion ?>">
   <?php endif; ?>
+
+  <link rel="preload" href="<?= SITE_URL ?>/assets/css/assistente_ai.css?v=<?= $assistenteCssVersion ?>" as="style" data-deferred-stylesheet>
+  <link rel="preload" href="<?= SITE_URL ?>/assets/css/accessibilita.css?v=<?= $accessibilitaCssVersion ?>" as="style" data-deferred-stylesheet>
+  <noscript>
+    <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/assistente_ai.css?v=<?= $assistenteCssVersion ?>">
+    <link rel="stylesheet" href="<?= SITE_URL ?>/assets/css/accessibilita.css?v=<?= $accessibilitaCssVersion ?>">
+  </noscript>
 </head>
 
 <body class="min-h-screen flex flex-col">
@@ -94,7 +149,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
       <!-- Logo -->
       <a href="<?= SITE_URL ?>/index.php" class="flex items-center gap-3 group shrink-0 <?= $isAdminPage ? 'admin-header-logo' : '' ?>">
         <img 
-          src="<?= SITE_URL ?>/img/logo-256.webp"
+          src="<?= SITE_URL ?>/img/logo-navbar.webp"
           width="96"
           height="72"
           alt="Logo Museo Storico Severi"
@@ -136,8 +191,18 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
         </a>
 
         <a href="<?= SITE_URL ?>/info.php"
-           class="px-4 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'info.php') ? 'text-oro border-b border-oro' : '' ?>">
+           class="px-3 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'info.php') ? 'text-oro border-b border-oro' : '' ?>">
           Info & Tariffe
+        </a>
+
+        <a href="<?= SITE_URL ?>/mappa.php"
+           class="px-3 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'mappa.php') ? 'text-oro border-b border-oro' : '' ?>">
+          Mappa
+        </a>
+
+        <a href="<?= SITE_URL ?>/features.php"
+           class="px-3 py-2 text-avorio hover:text-oro font-body text-sm tracking-wide transition-colors <?= ($currentPage === 'features.php') ? 'text-oro border-b border-oro' : '' ?>">
+          Features
         </a>
       </nav>
 
@@ -228,6 +293,8 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
       <a href="<?= SITE_URL ?>/esposizioni.php" class="mobile-menu-link <?= ($currentPage === 'esposizioni.php') ? 'mobile-menu-link-active' : '' ?>">Esposizioni</a>
       <a href="<?= SITE_URL ?>/novita.php" class="mobile-menu-link <?= ($currentPage === 'novita.php') ? 'mobile-menu-link-active' : '' ?>">Novità</a>
       <a href="<?= SITE_URL ?>/info.php" class="mobile-menu-link <?= ($currentPage === 'info.php') ? 'mobile-menu-link-active' : '' ?>">Info & Tariffe</a>
+      <a href="<?= SITE_URL ?>/mappa.php" class="mobile-menu-link <?= ($currentPage === 'mappa.php') ? 'mobile-menu-link-active' : '' ?>">Mappa del museo</a>
+      <a href="<?= SITE_URL ?>/features.php" class="mobile-menu-link <?= ($currentPage === 'features.php') ? 'mobile-menu-link-active' : '' ?>">Features</a>
 
       <div class="h-px bg-oro/20 my-3"></div>
 
@@ -271,6 +338,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
   <?php if ($isAdminPage): ?>
     <?php
       $headerAdminMenuItems = [
+        ['href' => '#admin-dashboard', 'label' => 'Dashboard'],
         ['href' => '#admin-esposizioni', 'label' => 'Esposizioni'],
         ['href' => '#admin-categorie', 'label' => 'Categorie riduzioni'],
         ['href' => '#admin-tariffe', 'label' => 'Tariffe'],
@@ -299,7 +367,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
 </header>
 <!-- Fine header -->
 
-<script>
+<script nonce="<?= cspNonce() ?>">
   document.addEventListener('DOMContentLoaded', function () {
     const button = document.getElementById('mobileMenuButton');
     const menu = document.getElementById('mobileMenu');
@@ -321,7 +389,7 @@ $metaDescription = $pageDescription ?? $metaDescriptions[$currentPage] ?? 'Museo
   });
 </script>
 
-<script>
+<script nonce="<?= cspNonce() ?>">
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.floating-alert').forEach(function (alertBox) {
       if (alertBox.parentNode !== document.body) {

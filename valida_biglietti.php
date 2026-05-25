@@ -355,7 +355,7 @@ include __DIR__ . '/header.php';
 </main>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<script>
+<script nonce="<?= cspNonce() ?>">
 (function () {
   var startBtn = document.getElementById('startQrScan');
   var stopBtn = document.getElementById('stopQrScan');

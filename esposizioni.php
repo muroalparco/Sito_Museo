@@ -56,8 +56,8 @@ include __DIR__ . '/header.php';
 </section>
 
 <div class="bg-avorio-dark border-b border-oro border-opacity-20 py-4">
-  <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 font-body text-sm">
-    <div class="flex flex-wrap gap-3 items-center">
+  <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 font-body text-sm esposizioni-filter-wrap">
+    <div class="expo-filter-row flex flex-wrap gap-3 items-center">
       <span class="text-antracite-light font-bold">Filtra per:</span>
       <?php
         $filtri = [
@@ -71,7 +71,7 @@ include __DIR__ . '/header.php';
           $isActive = ($stato === $val);
       ?>
       <a href="<?= $val ? '?stato='.urlencode((string)$val) : 'esposizioni.php' ?>"
-         class="px-4 py-1.5 rounded-full border transition-colors <?= $isActive ? 'bg-oro text-antracite border-oro font-bold' : 'border-gray-300 text-antracite hover:border-oro hover:text-oro' ?>">
+         class="expo-filter-pill px-4 py-1.5 rounded-full border transition-colors <?= $isActive ? 'bg-oro text-antracite border-oro font-bold' : 'border-gray-300 text-antracite hover:border-oro hover:text-oro' ?>">
         <?= clean($f['label']) ?>
       </a>
       <?php endforeach; ?>

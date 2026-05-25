@@ -25,6 +25,8 @@
           <li><a href="<?= SITE_URL ?>/chi_siamo.php" class="hover:text-oro transition-colors">Chi siamo</a></li>
           <li><a href="<?= SITE_URL ?>/esposizioni.php" class="hover:text-oro transition-colors">Esposizioni</a></li>
           <li><a href="<?= SITE_URL ?>/info.php" class="hover:text-oro transition-colors">Informazioni & Tariffe</a></li>
+          <li><a href="<?= SITE_URL ?>/mappa.php" class="hover:text-oro transition-colors">Mappa del museo</a></li>
+          <li><a href="<?= SITE_URL ?>/progetto_digitale.php" class="hover:text-oro transition-colors">Il progetto digitale</a></li>
           <li><a href="<?= isLogged() ? SITE_URL . '/account.php' : SITE_URL . '/login.php' ?>" class="hover:text-oro transition-colors">Area riservata</a></li>
         </ul>
       </div>
@@ -56,16 +58,62 @@
     </div>
   </div>
 </footer>
-<script id="auto-hide-alerts-global">
+<?php
+$assistenteJsPath = __DIR__ . '/assets/js/assistente_ai.js';
+$assistenteJsVersion = file_exists($assistenteJsPath) ? filemtime($assistenteJsPath) : time();
+$accessibilitaJsPath = __DIR__ . '/assets/js/accessibilita.js';
+$accessibilitaJsVersion = file_exists($accessibilitaJsPath) ? filemtime($accessibilitaJsPath) : time();
+include __DIR__ . '/assistente_ai.php';
+?>
+<div class="a11y-widget print:hidden" role="group" aria-label="Strumenti di accessibilità">
+  <div id="a11y-panel" class="a11y-panel" hidden>
+    <h2>Accessibilità</h2>
+    <div class="a11y-actions">
+      <button type="button" data-a11y-action="font" aria-pressed="false">Aumenta testo</button>
+      <button type="button" data-a11y-action="motion" aria-pressed="false">Riduci animazioni</button>
+      <button type="button" data-a11y-action="reset">Ripristina</button>
+    </div>
+  </div>
+  <button type="button" id="a11y-toggle" class="a11y-toggle" aria-label="Apri strumenti di accessibilità" aria-controls="a11y-panel" aria-expanded="false">Aa</button>
+</div>
+<script src="<?= SITE_URL ?>/assets/js/assistente_ai.js?v=<?= $assistenteJsVersion ?>" defer></script>
+<script src="<?= SITE_URL ?>/assets/js/accessibilita.js?v=<?= $accessibilitaJsVersion ?>" defer></script>
+<script id="auto-hide-alerts-global" nonce="<?= cspNonce() ?>">
 document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.floating-alert, .alert-success, .alert-error').forEach(function (box) {
+  var alerts = Array.prototype.slice.call(document.querySelectorAll('.floating-alert, .alert-success, .alert-error'));
+  if (!alerts.length) return;
+  var stack = document.createElement('div');
+  stack.className = 'mss-toast-stack';
+  stack.setAttribute('aria-live', 'polite');
+  document.body.appendChild(stack);
+
+  alerts.forEach(function (box) {
     if (box.dataset.keepOpen === 'true') return;
+    var toast = document.createElement('div');
+    var isError = box.classList.contains('alert-error');
+    var isSuccess = box.classList.contains('alert-success');
+    toast.className = 'mss-toast' + (isError ? ' is-error' : '') + (isSuccess ? ' is-success' : '');
+    toast.setAttribute('role', isError ? 'alert' : 'status');
+
+    var message = document.createElement('div');
+    message.innerHTML = box.innerHTML;
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Chiudi notifica');
+    close.textContent = '×';
+    close.addEventListener('click', function () { toast.remove(); });
+
+    toast.appendChild(message);
+    toast.appendChild(close);
+    stack.appendChild(toast);
+    box.remove();
+
     window.setTimeout(function () {
-      box.style.transition = 'opacity .35s ease, transform .35s ease';
-      box.style.opacity = '0';
-      box.style.transform = box.classList.contains('floating-alert') ? 'translate(-50%, -8px)' : 'translateY(-8px)';
-      window.setTimeout(function () { box.remove(); }, 450);
-    }, 4200);
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(-8px)';
+      toast.style.transition = 'opacity .25s ease, transform .25s ease';
+      window.setTimeout(function () { toast.remove(); }, 280);
+    }, 5200);
   });
 });
 </script>

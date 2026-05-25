@@ -1,0 +1,87 @@
+:root {
+  --a11y-scale: 1;
+}
+
+html.a11y-font-large {
+  font-size: calc(16px * var(--a11y-scale));
+}
+
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+.a11y-widget {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 9998;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.a11y-toggle {
+  min-width: 54px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: #102744;
+  color: #fffdf5;
+  box-shadow: 0 14px 32px rgba(0,0,0,.22);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.a11y-panel {
+  width: min(290px, calc(100vw - 28px));
+  margin-bottom: 12px;
+  padding: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(142,197,232,.35);
+  border-radius: 20px;
+  box-shadow: 0 18px 45px rgba(0,0,0,.22);
+}
+
+.a11y-panel[hidden] {
+  display: none !important;
+}
+
+.a11y-panel h2 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+  color: #102744;
+}
+
+.a11y-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.a11y-actions button {
+  border: 1px solid rgba(16,39,68,.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f7fbff;
+  color: #102744;
+  cursor: pointer;
+  font-weight: 800;
+  text-align: left;
+}
+
+.a11y-actions button[aria-pressed="true"] {
+  background: #102744;
+  color: #ffffff;
+}
+
+@media (max-width: 520px) {
+  .a11y-widget {
+    left: 12px;
+    bottom: 12px;
+  }
+}
+
+@media print {
+  .a11y-widget { display: none !important; }
+}

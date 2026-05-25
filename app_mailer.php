@@ -73,6 +73,82 @@ function museoPlainFromHtml(string $htmlBody): string
     return trim($plain);
 }
 
+
+function museoEmailSafe(string $text): string
+{
+    return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+}
+
+function museoEmailUrl(string $path = ''): string
+{
+    $base = defined('SITE_URL') ? rtrim(SITE_URL, '/') : '';
+    if ($path === '') {
+        return $base;
+    }
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    return $base . '/' . ltrim($path, '/');
+}
+
+function museoEmailTemplate(string $title, string $subtitle, string $contentHtml, array $options = []): string
+{
+    $siteName = 'Museo Storico Severi';
+    $safeSite = museoEmailSafe($siteName);
+    $safeTitle = museoEmailSafe($title);
+    $safeSubtitle = museoEmailSafe($subtitle);
+    $badge = museoEmailSafe((string)($options['badge'] ?? 'Comunicazione del museo'));
+    $ctaText = trim((string)($options['cta_text'] ?? ''));
+    $ctaUrl = trim((string)($options['cta_url'] ?? ''));
+    $cta = '';
+
+    if ($ctaText !== '' && $ctaUrl !== '') {
+        $cta =
+            '<table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin:26px auto 0;">' . "\r\n" .
+            '<tr><td align="center" style="border-radius:12px;background:#8EC5E8;">' . "\r\n" .
+            '<a href="' . museoEmailSafe($ctaUrl) . '" style="display:inline-block;color:#102744;text-decoration:none;font-weight:700;border-radius:12px;padding:13px 22px;font-size:14px;line-height:1.2;min-width:170px;text-align:center;">' . museoEmailSafe($ctaText) . '</a>' . "\r\n" .
+            '</td></tr></table>' . "\r\n";
+    }
+
+    return "<!doctype html>\r\n" .
+        "<html lang=\"it\">\r\n" .
+        "<head>\r\n" .
+        "<meta charset=\"UTF-8\">\r\n" .
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n" .
+        "<title>{$safeTitle}</title>\r\n" .
+        "</head>\r\n" .
+        "<body style=\"margin:0;padding:0;background:#f3f8fc;font-family:Arial,Helvetica,sans-serif;color:#12233B;\">\r\n" .
+        "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"background:#f3f8fc;padding:28px 12px;\">\r\n" .
+        "<tr><td align=\"center\">\r\n" .
+        "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" style=\"max-width:680px;background:#ffffff;border:1px solid #d8e8f7;border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(16,39,68,.12);\">\r\n" .
+        "<tr><td style=\"background:#102744;padding:30px 28px;color:#ffffff;\">\r\n" .
+        "<div style=\"font-size:12px;color:#8EC5E8;font-weight:700;margin-bottom:10px;text-transform:uppercase;\">{$badge}</div>\r\n" .
+        "<div style=\"font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.15;font-weight:700;margin-bottom:8px;color:#ffffff;\">{$safeSite}</div>\r\n" .
+        "<div style=\"font-size:15px;color:#d8edf9;line-height:1.45;\">{$safeSubtitle}</div>\r\n" .
+        "</td></tr>\r\n" .
+        "<tr><td style=\"padding:30px 28px;\">\r\n" .
+        "<h1 style=\"font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.18;margin:0 0 18px;color:#102744;\">{$safeTitle}</h1>\r\n" .
+        $contentHtml . "\r\n" .
+        $cta .
+        "<div style=\"margin-top:28px;border-top:1px solid #e5f0f7;padding-top:18px;color:#6b7280;font-size:12px;line-height:1.5;\">\r\n" .
+        "Email generata automaticamente dal Museo Storico Severi. Conserva questo messaggio come promemoria della tua operazione.\r\n" .
+        "</div>\r\n" .
+        "</td></tr></table>\r\n" .
+        "</td></tr></table>\r\n" .
+        "</body></html>\r\n";
+}
+
+function museoEmailInfoBox(array $items, string $tone = 'info'): string
+{
+    $bg = $tone === 'success' ? '#e8f7ee' : ($tone === 'warning' ? '#fff8e1' : '#f7fbff');
+    $border = $tone === 'success' ? '#9bd5ae' : ($tone === 'warning' ? '#e1c16e' : '#d8e8f7');
+    $html = '<div style="background:' . $bg . ';border:1px solid ' . $border . ';border-radius:16px;padding:16px 18px;margin:18px 0;">';
+    foreach ($items as $label => $value) {
+        $html .= '<div style="margin:5px 0;font-size:14px;"><strong style="color:#102744;">' . museoEmailSafe((string)$label) . ':</strong> ' . museoEmailSafe((string)$value) . '</div>';
+    }
+    return $html . '</div>';
+}
+
 function museoFindPhpMailer(): ?string
 {
     $possibleBases = [
@@ -179,11 +255,14 @@ function museoSendMailNative(
     if (empty($validAttachments)) {
         $headers[] = 'MIME-Version: 1.0';
         $headers[] = 'Content-Type: text/html; charset=UTF-8';
+        $headers[] = 'Content-Transfer-Encoding: base64';
+
+        $encodedBody = chunk_split(base64_encode($htmlBody));
 
         $ok = @mail(
             $to,
             museoHeaderEncode($subject),
-            $htmlBody,
+            $encodedBody,
             implode("\r\n", $headers),
             '-f' . $fromEmail
         );
@@ -199,8 +278,8 @@ function museoSendMailNative(
     $message = '';
     $message .= '--' . $boundary . "\r\n";
     $message .= "Content-Type: text/html; charset=UTF-8\r\n";
-    $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
-    $message .= $htmlBody . "\r\n\r\n";
+    $message .= "Content-Transfer-Encoding: base64\r\n\r\n";
+    $message .= chunk_split(base64_encode($htmlBody)) . "\r\n";
 
     foreach ($validAttachments as $attachment) {
         $data = chunk_split(base64_encode((string)file_get_contents($attachment['path'])));
@@ -386,26 +465,18 @@ function inviaEmailVerificaAccount(string $email, string $nome, string $codice):
 {
     $siteName = defined('SITE_NAME') ? SITE_NAME : 'Museo Storico Severi';
     $subject = 'Codice di verifica - ' . $siteName;
-
-    $codiceHtml = htmlspecialchars($codice, ENT_QUOTES, 'UTF-8');
-    $nomeHtml = htmlspecialchars($nome, ENT_QUOTES, 'UTF-8');
-    $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
-
-    $body = "
-        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#2C2C2C;max-width:620px;margin:auto;border:1px solid #e5e0d0;border-radius:14px;overflow:hidden;'>
-            <div style='background:#2C2C2C;color:#F7FBFF;padding:24px;text-align:center;'>
-                <h1 style='margin:0;color:#8EC5E8;'>{$siteHtml}</h1>
-                <p style='margin:8px 0 0;'>Verifica il tuo account</p>
-            </div>
-            <div style='padding:26px;background:#ffffff;'>
-                <p>Ciao <strong>{$nomeHtml}</strong>,</p>
-                <p>grazie per la registrazione. Inserisci questo codice nella pagina di verifica:</p>
-                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F7FBFF;border:1px solid #8EC5E8;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
-                <p>Se non hai richiesto tu la registrazione, ignora questa email.</p>
-            </div>
-        </div>
-    ";
-
+    $content = '<p style="font-size:16px;line-height:1.65;margin:0 0 14px;">Ciao <strong>' . museoEmailSafe($nome) . '</strong>, grazie per la registrazione.</p>' .
+        '<p style="font-size:15px;line-height:1.65;margin:0 0 18px;">Inserisci questo codice nella pagina di verifica per attivare il tuo account.</p>' .
+        '<div style="text-align:center;background:#f7fbff;border:1px solid #8EC5E8;border-radius:18px;padding:22px;margin:22px 0;">' .
+        '<div style="font-size:34px;letter-spacing:9px;font-weight:900;color:#102744;font-family:Arial,Helvetica,sans-serif;">' . museoEmailSafe($codice) . '</div>' .
+        '<div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.12em;margin-top:8px;">Codice verifica</div>' .
+        '</div>' .
+        '<p style="font-size:14px;color:#6b7280;line-height:1.55;">Se non hai richiesto tu la registrazione, puoi ignorare questa email.</p>';
+    $body = museoEmailTemplate('Verifica il tuo account', 'Completa la registrazione al museo digitale', $content, [
+        'badge' => 'Area riservata',
+        'cta_text' => 'Vai alla verifica',
+        'cta_url' => museoEmailUrl('/verifica_email.php?email=' . rawurlencode($email)),
+    ]);
     return museoSendMail($email, $subject, $body, "Codice di verifica: {$codice}");
 }
 
@@ -413,26 +484,18 @@ function inviaEmailCodiceRecuperoPassword(string $email, string $nome, string $c
 {
     $siteName = defined('SITE_NAME') ? SITE_NAME : 'Museo Storico Severi';
     $subject = 'Codice recupero password - ' . $siteName;
-
-    $codiceHtml = htmlspecialchars($codice, ENT_QUOTES, 'UTF-8');
-    $nomeHtml = htmlspecialchars($nome, ENT_QUOTES, 'UTF-8');
-    $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
-
-    $body = "
-        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#2C2C2C;max-width:620px;margin:auto;border:1px solid #e5e0d0;border-radius:14px;overflow:hidden;'>
-            <div style='background:#2C2C2C;color:#F7FBFF;padding:24px;text-align:center;'>
-                <h1 style='margin:0;color:#8EC5E8;'>{$siteHtml}</h1>
-                <p style='margin:8px 0 0;'>Recupero password</p>
-            </div>
-            <div style='padding:26px;background:#ffffff;'>
-                <p>Ciao <strong>{$nomeHtml}</strong>,</p>
-                <p>per completare il recupero password inserisci questo codice insieme alla risposta di sicurezza:</p>
-                <div style='font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#F7FBFF;border:1px solid #8EC5E8;border-radius:12px;padding:18px;margin:24px 0;color:#2C2C2C;'>{$codiceHtml}</div>
-                <p>Il codice scade dopo pochi minuti. Se non hai richiesto tu il recupero, ignora questa email.</p>
-            </div>
-        </div>
-    ";
-
+    $content = '<p style="font-size:16px;line-height:1.65;margin:0 0 14px;">Ciao <strong>' . museoEmailSafe($nome) . '</strong>,</p>' .
+        '<p style="font-size:15px;line-height:1.65;margin:0 0 18px;">Usa questo codice per completare il recupero password insieme alla risposta di sicurezza.</p>' .
+        '<div style="text-align:center;background:#fff8e1;border:1px solid #e1c16e;border-radius:18px;padding:22px;margin:22px 0;">' .
+        '<div style="font-size:34px;letter-spacing:9px;font-weight:900;color:#102744;font-family:Arial,Helvetica,sans-serif;">' . museoEmailSafe($codice) . '</div>' .
+        '<div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.12em;margin-top:8px;">Codice recupero</div>' .
+        '</div>' .
+        '<p style="font-size:14px;color:#6b7280;line-height:1.55;">Il codice scade dopo pochi minuti. Se non hai richiesto tu il recupero, ignora questa email.</p>';
+    $body = museoEmailTemplate('Recupero password', 'Proteggi il tuo account', $content, [
+        'badge' => 'Sicurezza account',
+        'cta_text' => 'Apri recupero password',
+        'cta_url' => museoEmailUrl('/recupero_password.php'),
+    ]);
     return museoSendMail($email, $subject, $body, "Codice recupero password: {$codice}");
 }
 
@@ -452,74 +515,62 @@ function inviaEmailConfermaOrdine(array $ordine, array $codici = [], string $pdf
 
     $siteName = defined('SITE_NAME') ? SITE_NAME : 'Museo Storico Severi';
     $codiceOrdine = (string)($ordine['codice_recupero'] ?? $ordine['codice_ordine'] ?? ('ORD-' . ($ordine['id_ordine'] ?? '')));
-    $nome = htmlspecialchars((string)($ordine['nome_cliente'] ?? $ordine['nome'] ?? 'Visitatore'), ENT_QUOTES, 'UTF-8');
-    $totale = number_format((float)($ordine['importo_totale'] ?? $ordine['totale'] ?? 0), 2, ',', '.');
-    $stato = htmlspecialchars((string)($ordine['stato_pagamento'] ?? 'Pagato'), ENT_QUOTES, 'UTF-8');
-    $metodo = htmlspecialchars((string)($ordine['metodo_pagamento'] ?? 'Non indicato'), ENT_QUOTES, 'UTF-8');
-    $codiceHtml = htmlspecialchars($codiceOrdine, ENT_QUOTES, 'UTF-8');
-    $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
+    $nome = (string)($ordine['nome_cliente'] ?? $ordine['nome'] ?? 'Visitatore');
+    $totale = '€ ' . number_format((float)($ordine['importo_totale'] ?? $ordine['totale'] ?? 0), 2, ',', '.');
+    $stato = (string)($ordine['stato_pagamento'] ?? 'Pagato');
+    $metodo = ucfirst((string)($ordine['metodo_pagamento'] ?? 'Non indicato'));
+    $pagato = strcasecmp($stato, 'Pagato') === 0;
 
-    $pagato = strcasecmp((string)($ordine['stato_pagamento'] ?? 'Pagato'), 'Pagato') === 0;
     $righeBiglietti = '';
     foreach ($codici as $codice) {
-        $codicePulito = htmlspecialchars((string)$codice, ENT_QUOTES, 'UTF-8');
+        $codice = (string)$codice;
         $qr = '';
         if ($pagato) {
-            $qrUrl = SITE_URL . '/ticket_qr.php?small=1&codice=' . rawurlencode((string)$codice);
-            $ticketUrl = SITE_URL . '/ticket.php?codice=' . rawurlencode((string)$codice);
-            $qr = '<div style="margin-top:10px;"><a href="' . htmlspecialchars($ticketUrl, ENT_QUOTES, 'UTF-8') . '"><img src="' . htmlspecialchars($qrUrl, ENT_QUOTES, 'UTF-8') . '" width="120" height="120" alt="QR code biglietto" style="display:block;border:1px solid #d8e8f7;border-radius:12px;padding:8px;background:#fff;"></a></div>';
+            $qrUrl = museoEmailUrl('/ticket_qr.php?small=1&codice=' . rawurlencode($codice));
+            $ticketUrl = museoEmailUrl('/ticket.php?codice=' . rawurlencode($codice));
+            $qr = '<a href="' . museoEmailSafe($ticketUrl) . '" style="display:inline-block;margin-top:10px;"><img src="' . museoEmailSafe($qrUrl) . '" width="112" height="112" alt="QR code biglietto" style="display:block;border:1px solid #d8e8f7;border-radius:14px;padding:8px;background:#fff;"></a>';
         }
-        $righeBiglietti .= '<div style="border:1px solid #d8e8f7;border-radius:14px;padding:14px;margin:10px 0;background:#F7FBFF;"><strong>' . $codicePulito . '</strong>' . $qr . '</div>';
+        $righeBiglietti .= '<div style="border:1px solid #d8e8f7;border-radius:16px;padding:14px;margin:10px 0;background:#f7fbff;">' .
+            '<div style="font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#6b7280;font-weight:800;">Codice biglietto</div>' .
+            '<div style="font-family:Courier New,monospace;font-weight:900;color:#102744;font-size:15px;margin-top:4px;word-break:break-all;">' . museoEmailSafe($codice) . '</div>' . $qr . '</div>';
     }
     if ($righeBiglietti === '') {
-        $righeBiglietti = '<p>Nessun codice biglietto disponibile.</p>';
+        $righeBiglietti = '<p style="font-size:14px;color:#6b7280;">Nessun codice biglietto disponibile.</p>';
     }
 
+    $content = '<p style="font-size:16px;line-height:1.65;margin:0 0 14px;">Ciao <strong>' . museoEmailSafe($nome) . '</strong>, il tuo ordine è stato registrato correttamente.</p>' .
+        museoEmailInfoBox([
+            'Ordine' => $codiceOrdine,
+            'Metodo pagamento' => $metodo,
+            'Stato pagamento' => $stato,
+            'Totale' => $totale,
+        ], $pagato ? 'success' : 'warning') .
+        '<h2 style="font-family:Georgia,serif;color:#102744;font-size:22px;margin:24px 0 12px;">Biglietti e QR code</h2>' .
+        $righeBiglietti .
+        '<div style="background:#fff8e1;border-left:4px solid #8EC5E8;padding:12px 14px;border-radius:10px;margin-top:18px;font-size:14px;color:#4b5563;">' . "\r\n" .
+        'Porta eventuali documenti richiesti e mostra il QR code all&#39;ingresso.' . "\r\n" .
+        '</div>';
+
     $subject = 'Conferma ordine ' . $codiceOrdine . ' - ' . $siteName;
-    $body = "
-        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#12233B;max-width:720px;margin:auto;border:1px solid #d8e8f7;border-radius:18px;overflow:hidden;background:#ffffff;'>
-            <div style='background:#12233B;color:#F7FBFF;padding:28px;text-align:center;'>
-                <h1 style='margin:0;color:#8EC5E8;font-size:28px;'>{$siteHtml}</h1>
-                <p style='margin:8px 0 0;'>Conferma ordine</p>
-            </div>
-            <div style='padding:28px;background:#ffffff;'>
-                <p>Ciao <strong>{$nome}</strong>,</p>
-                <p>ti confermiamo l'ordine <strong>{$codiceHtml}</strong>.</p>
-                <div style='background:#F7FBFF;border:1px solid #d8e8f7;border-radius:14px;padding:16px;margin:18px 0;'>
-                  <p style='margin:0;'><strong>Metodo pagamento:</strong> {$metodo}<br>
-                  <strong>Stato pagamento:</strong> {$stato}<br>
-                  <strong>Totale:</strong> € {$totale}</p>
-                </div>
-                <p><strong>Codici biglietto e QR code:</strong></p>
-                {$righeBiglietti}
-                <p style='margin-top:20px;background:#fff7df;border-left:4px solid #8EC5E8;padding:12px;border-radius:8px;'>Si ricorda di portare i documenti richiesti per eventuali riduzioni.</p>
-                <p>In allegato trovi il PDF riepilogativo dell'ordine, se disponibile.</p>
-            </div>
-        </div>
-    ";
+    $body = museoEmailTemplate('Conferma ordine', 'Biglietti e riepilogo della tua visita', $content, [
+        'badge' => 'Prenotazione confermata',
+        'cta_text' => 'Apri i biglietti',
+        'cta_url' => museoEmailUrl('/biglietti.php?codice=' . rawurlencode($codiceOrdine)),
+    ]);
 
     $attachments = [];
     $tmpPdfDaEliminare = null;
-
     if ($pdfPath !== '') {
         if (museoAttachmentPathIsSafe($pdfPath)) {
-            $attachments[] = [
-                'path' => trim($pdfPath),
-                'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf',
-            ];
+            $attachments[] = ['path' => trim($pdfPath), 'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf'];
         } elseif (strncmp($pdfPath, '%PDF-', 5) === 0) {
-            // Compatibilità: se per errore viene passato il contenuto del PDF invece del percorso,
-            // lo trasformiamo in un file temporaneo. Online verrà comunque rimosso dagli allegati per evitare timeout.
             $tmpBase = tempnam(sys_get_temp_dir(), 'mss_pdf_mail_');
             if ($tmpBase !== false) {
                 $tmpPdfDaEliminare = $tmpBase . '.pdf';
                 @rename($tmpBase, $tmpPdfDaEliminare);
                 @file_put_contents($tmpPdfDaEliminare, $pdfPath);
                 if (museoAttachmentPathIsSafe($tmpPdfDaEliminare)) {
-                    $attachments[] = [
-                        'path' => $tmpPdfDaEliminare,
-                        'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf',
-                    ];
+                    $attachments[] = ['path' => $tmpPdfDaEliminare, 'name' => 'ordine_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $codiceOrdine) . '.pdf'];
                 }
             }
         } else {
@@ -558,40 +609,25 @@ function inviaEmailEsitoRimborso(array $ordine, string $esito, string $nota = ''
     $accettato = strcasecmp($esito, 'Accettato') === 0;
     $titoloEsito = $accettato ? 'Rimborso accettato' : 'Rimborso rifiutato';
     $subject = $titoloEsito . ' - ordine ' . $codiceOrdine . ' - ' . $siteName;
-
-    $nomeHtml = htmlspecialchars($nome, ENT_QUOTES, 'UTF-8');
-    $siteHtml = htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8');
-    $codiceHtml = htmlspecialchars($codiceOrdine, ENT_QUOTES, 'UTF-8');
-    $totaleHtml = number_format((float)($ordine['importo_totale'] ?? 0), 2, ',', '.');
-    $notaHtml = trim($nota) !== '' ? '<p>' . nl2br(htmlspecialchars($nota, ENT_QUOTES, 'UTF-8')) . '</p>' : '';
+    $totale = '€ ' . number_format((float)($ordine['importo_totale'] ?? 0), 2, ',', '.');
 
     $messaggio = $accettato
-        ? "La tua richiesta di rimborso è stata accettata. L'importo dell'ordine è stato riaccreditato sul tuo portafoglio virtuale. I biglietti collegati all'ordine non sono più utilizzabili."
-        : "La tua richiesta di rimborso è stata rifiutata. L'ordine rimane consultabile nella tua area ordini.";
-    $messaggioHtml = htmlspecialchars($messaggio, ENT_QUOTES, 'UTF-8');
-    $badgeColor = $accettato ? '#E8F7EE' : '#FFF4E5';
-    $badgeBorder = $accettato ? '#9BD5AE' : '#E1B66C';
-    $badgeText = $accettato ? '#166534' : '#92400E';
+        ? "La tua richiesta di rimborso è stata accettata. L’importo dell'ordine è stato riaccreditato sul portafoglio virtuale e i biglietti non sono più utilizzabili."
+        : "La tua richiesta di rimborso è stata rifiutata. L’ordine resta consultabile nella tua area personale.";
+    $notaHtml = trim($nota) !== '' ? '<p style="font-size:14px;line-height:1.6;color:#4b5563;background:#f7fbff;border:1px solid #d8e8f7;border-radius:12px;padding:12px 14px;"><strong>Nota:</strong><br>' . nl2br(museoEmailSafe($nota)) . '</p>' : '';
+    $content = '<p style="font-size:16px;line-height:1.65;margin:0 0 14px;">Ciao <strong>' . museoEmailSafe($nome) . '</strong>,</p>' .
+        '<p style="font-size:15px;line-height:1.65;margin:0 0 14px;">' . museoEmailSafe($messaggio) . '</p>' .
+        museoEmailInfoBox([
+            'Ordine' => $codiceOrdine,
+            'Esito' => $titoloEsito,
+            'Importo' => $totale,
+        ], $accettato ? 'success' : 'warning') . $notaHtml;
 
-    $body = "
-        <div style='font-family:Arial,sans-serif;line-height:1.6;color:#12233B;max-width:680px;margin:auto;border:1px solid #d8e8f7;border-radius:18px;overflow:hidden;background:#ffffff;'>
-            <div style='background:#12233B;color:#F7FBFF;padding:28px;text-align:center;'>
-                <h1 style='margin:0;color:#8EC5E8;font-size:28px;'>{$siteHtml}</h1>
-                <p style='margin:8px 0 0;'>{$titoloEsito}</p>
-            </div>
-            <div style='padding:28px;background:#ffffff;'>
-                <p>Ciao <strong>{$nomeHtml}</strong>,</p>
-                <p>{$messaggioHtml}</p>
-                <div style='background:{$badgeColor};border:1px solid {$badgeBorder};border-radius:14px;padding:16px;margin:18px 0;color:{$badgeText};'>
-                  <p style='margin:0;'><strong>Ordine:</strong> {$codiceHtml}<br>
-                  <strong>Esito:</strong> {$titoloEsito}<br>
-                  <strong>Importo:</strong> € {$totaleHtml}</p>
-                </div>
-                {$notaHtml}
-                <p>Puoi continuare a consultare l'ordine nella tua area personale.</p>
-            </div>
-        </div>
-    ";
+    $body = museoEmailTemplate($titoloEsito, 'Aggiornamento sulla tua richiesta', $content, [
+        'badge' => 'Gestione rimborsi',
+        'cta_text' => 'Apri area personale',
+        'cta_url' => museoEmailUrl('/account.php'),
+    ]);
 
     return museoSendMail($email, $subject, $body, museoPlainFromHtml($body));
 }

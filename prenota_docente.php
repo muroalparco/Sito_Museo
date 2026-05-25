@@ -20,13 +20,29 @@ try {
         if (!$esposizione) {
             $errore = 'Esposizione non disponibile per la prenotazione.';
         } else {
-            $stmtF = $pdo->prepare("\n                SELECT\n                    f.*,\n                    (f.capienza_massima - COALESCE(SUM(CASE WHEN b.stato <> 'Annullato' THEN 1 ELSE 0 END), 0)) AS posti_disponibili\n                FROM Fasce_Orarie f\n                LEFT JOIN Biglietti b ON b.id_fascia = f.id_fascia\n                WHERE f.id_esposizione = ?\n                GROUP BY f.id_fascia\n                ORDER BY f.data ASC, f.ora_ingresso ASC\n            ");
+            $stmtF = $pdo->prepare("
+                SELECT
+                    f.*,
+                    (f.capienza_massima - COALESCE(SUM(CASE WHEN b.stato <> 'Annullato' THEN 1 ELSE 0 END), 0)) AS posti_disponibili
+                FROM Fasce_Orarie f
+                LEFT JOIN Biglietti b ON b.id_fascia = f.id_fascia
+                WHERE f.id_esposizione = ?
+                GROUP BY f.id_fascia
+                ORDER BY f.data ASC, f.ora_ingresso ASC
+            ");
             $stmtF->execute([$idEsposizione]);
             $fasce = $stmtF->fetchAll();
         }
     }
 
-    $tariffeStmt = $pdo->prepare("\n        SELECT t.id_tariffa, t.tipo_biglietto, t.prezzo, cr.id_categoria, cr.nome AS categoria, cr.percentuale_sconto, cr.documento_richiesto\n        FROM Tariffe t\n        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria\n        WHERE t.tipo_biglietto = ?\n          AND cr.nome <> 'Docente accompagnatore'\n        ORDER BY t.prezzo DESC\n    ");
+    $tariffeStmt = $pdo->prepare("
+        SELECT t.id_tariffa, t.tipo_biglietto, t.prezzo, cr.id_categoria, cr.nome AS categoria, cr.percentuale_sconto, cr.documento_richiesto
+        FROM Tariffe t
+        JOIN Categorie_Riduzione cr ON cr.id_categoria = t.id_categoria
+        WHERE t.tipo_biglietto = ?
+          AND cr.nome <> 'Docente accompagnatore'
+        ORDER BY t.prezzo DESC
+    ");
     $tariffeStmt->execute([$tipo]);
     $tariffe = $tariffeStmt->fetchAll();
 
@@ -53,17 +69,25 @@ include __DIR__ . '/header.php';
   </div>
 </div>
 
-<section class="bg-antracite py-14">
-  <div class="max-w-7xl mx-auto px-4 text-center fade-up">
-    <p class="text-oro text-xs uppercase tracking-widest font-body mb-2">Prenotazione classe</p>
-    <h1 class="font-display text-avorio text-4xl font-bold">
-      <?= $tipo === 'base' ? 'Ingresso al Museo per la classe' : 'Classe · ' . clean($esposizione['titolo'] ?? 'Esposizione') ?>
-    </h1>
-    <div class="w-16 h-px bg-oro mx-auto mt-4"></div>
+<section class="booking-hero bg-antracite py-14">
+  <div class="max-w-7xl mx-auto px-4 fade-up">
+    <div class="grid lg:grid-cols-[1fr_auto] gap-8 items-end">
+      <div>
+        <p class="text-acciaio text-xs uppercase tracking-widest font-body mb-3 font-bold">Prenotazione didattica</p>
+        <h1 class="font-display text-avorio text-4xl md:text-5xl font-bold leading-tight">
+          <?= $tipo === 'base' ? 'Visita per la classe' : 'Classe · ' . clean($esposizione['titolo'] ?? 'Esposizione') ?>
+        </h1>
+        <p class="mt-4 max-w-2xl font-body" style="color: rgba(255, 253, 245, 0.9);">Una procedura dedicata a docenti e gruppi scolastici, con dati della scuola, partecipanti, accompagnatori e servizi opzionali.</p>
+      </div>
+      <a href="<?= $linkPrenotazioneNormale ?>" class="btn-outline px-5 py-3 rounded text-sm text-center bg-white/5 border-acciaio text-avorio hover:bg-acciaio hover:text-antracite">
+        🎟️ Prenotazione standard
+      </a>
+    </div>
   </div>
 </section>
 
-<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<main class="booking-shell px-4 sm:px-6 lg:px-8 py-12">
+  <div class="max-w-7xl mx-auto">
   <?php if ($errore): ?>
     <div class="alert-error p-5 rounded mb-8 font-body"> <?= clean($errore) ?></div>
     <a href="<?= SITE_URL ?>/esposizioni.php" class="btn-outline px-6 py-3 rounded inline-block">Torna alle esposizioni</a>
@@ -71,24 +95,17 @@ include __DIR__ . '/header.php';
     <div class="alert-error p-5 rounded mb-8 font-body"> Nessuna tariffa disponibile per questo tipo di biglietto.</div>
   <?php else: ?>
 
-  <div class="grid lg:grid-cols-3 gap-8">
-    <section class="lg:col-span-2 bg-white rounded-2xl shadow border border-avorio-dark overflow-hidden">
-      <div class="bg-antracite px-6 py-5">
-        <h2 class="font-display text-2xl text-avorio font-bold">Dati della prenotazione classe</h2>
-        <p class="text-gray-400 text-sm mt-1">Prenotazione dedicata ai docenti: non è necessario effettuare il login.</p>
-      </div>
-
-      <div class="px-6 py-4 bg-avorio border-b border-avorio-dark flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+  <div class="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-8">
+    <section class="booking-panel">
+      <div class="booking-panel-header">
         <div>
-          <p class="font-body font-bold text-antracite text-sm">Prenotazione per classi scolastiche</p>
-          <p class="text-xs text-gray-500 mt-1">Inserisci studenti e docenti accompagnatori. I docenti hanno biglietto gratuito.</p>
+          <p class="booking-kicker">Gruppo scolastico</p>
+          <h2 class="booking-panel-title">Organizza la visita didattica</h2>
+          <p class="booking-panel-text">I docenti accompagnatori vengono indicati separatamente e hanno biglietto gratuito.</p>
         </div>
-        <a href="<?= $linkPrenotazioneNormale ?>" class="btn-outline px-5 py-2 rounded text-sm text-center whitespace-nowrap">
-          Prenotazione standard
-        </a>
       </div>
 
-      <form action="<?= SITE_URL ?>/pagamento.php" method="POST" class="p-6 space-y-7">
+      <form action="<?= SITE_URL ?>/pagamento.php" method="POST" class="booking-form">
         <input type="hidden" name="csrf_token" value="<?= csrfToken() ?>">
         <input type="hidden" name="tipo" value="<?= clean($tipo) ?>">
         <input type="hidden" name="prenotazione_docente" value="1">
@@ -96,212 +113,186 @@ include __DIR__ . '/header.php';
           <input type="hidden" name="id_esposizione" value="<?= (int)$idEsposizione ?>">
         <?php endif; ?>
 
-        <section>
-          <h3 class="font-display text-xl font-bold text-antracite mb-4">Referente della prenotazione</h3>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">👩‍🏫</span>Referente della prenotazione</h3>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Nome e cognome docente referente <span class="text-red-500">*</span></label>
-              <input type="text" name="nome_cliente" required value="<?= clean(trim(($_SESSION['utente_nome'] ?? '') . ' ' . ($_SESSION['utente_cognome'] ?? ''))) ?>"
-                     placeholder="Mario Rossi"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Nome e cognome docente referente <span class="text-red-500">*</span></label>
+              <input type="text" name="nome_cliente" required value="<?= clean(trim(($_SESSION['utente_nome'] ?? '') . ' ' . ($_SESSION['utente_cognome'] ?? ''))) ?>" placeholder="Mario Rossi">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Email referente <span class="text-red-500">*</span></label>
-              <input type="email" name="email_cliente" required value="<?= clean($_SESSION['utente_email'] ?? '') ?>"
-                     placeholder="nome@email.it"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Email referente <span class="text-red-500">*</span></label>
+              <input type="email" name="email_cliente" required value="<?= clean($_SESSION['utente_email'] ?? '') ?>" placeholder="nome@email.it">
             </div>
           </div>
         </section>
 
-        <section class="border-t border-avorio-dark pt-6">
-          <h3 class="font-display text-xl font-bold text-antracite mb-4">Dati della scuola</h3>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">🏫</span>Dati della scuola</h3>
           <div class="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Nome scuola <span class="text-red-500">*</span></label>
-              <input type="text" name="nome_scuola" required placeholder="I.I.S. Leonardo da Vinci"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Nome scuola <span class="text-red-500">*</span></label>
+              <input type="text" name="nome_scuola" required placeholder="I.I.S. Leonardo da Vinci">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Codice meccanografico</label>
-              <input type="text" name="codice_meccanografico" maxlength="20" placeholder="PDIS000000"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Codice meccanografico</label>
+              <input type="text" name="codice_meccanografico" maxlength="20" placeholder="PDIS000000">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Indirizzo scuola</label>
-              <input type="text" name="indirizzo_scuola" placeholder="Via / Piazza e numero civico"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Indirizzo scuola</label>
+              <input type="text" name="indirizzo_scuola" placeholder="Via / Piazza e numero civico">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Città scuola <span class="text-red-500">*</span></label>
-              <input type="text" name="citta_scuola" required placeholder="Padova"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Città scuola <span class="text-red-500">*</span></label>
+              <input type="text" name="citta_scuola" required placeholder="Padova">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Telefono scuola</label>
-              <input type="text" name="telefono_scuola" placeholder="049 000000"
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Telefono scuola</label>
+              <input type="text" name="telefono_scuola" placeholder="049 000000">
             </div>
-            <div>
-              <label class="block text-sm font-body font-bold text-antracite mb-1">Classe / sezione <span class="text-red-500">*</span></label>
-              <input type="text" name="classe_scuola" required placeholder="3A, 4B Turismo, ecc."
-                     class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
+            <div class="booking-field">
+              <label>Classe / sezione <span class="text-red-500">*</span></label>
+              <input type="text" name="classe_scuola" required placeholder="3A, 4B Turismo, ecc.">
             </div>
           </div>
         </section>
 
-        <?php if ($tipo === 'esposizione'): ?>
-          <div>
-            <label class="block text-sm font-body font-bold text-antracite mb-1">Fascia oraria <span class="text-red-500">*</span></label>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">📅</span><?= $tipo === 'esposizione' ? 'Scegli fascia oraria' : 'Scegli data visita' ?></h3>
+          <?php if ($tipo === 'esposizione'): ?>
             <?php if (empty($fasce)): ?>
               <div class="alert-error p-4 rounded text-sm">Non ci sono fasce orarie disponibili per questa esposizione.</div>
             <?php else: ?>
-              <select name="id_fascia" required class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
-                <option value="">Seleziona una fascia</option>
+              <div class="booking-time-grid">
                 <?php foreach ($fasce as $f): ?>
                   <?php $posti = max(0, (int)$f['posti_disponibili']); ?>
-                  <option value="<?= (int)$f['id_fascia'] ?>">
-                    <?= date('d/m/Y', strtotime($f['data'])) ?> - <?= substr($f['ora_ingresso'], 0, 5) ?> · capienza ordinaria disponibile: <?= $posti ?> posti
-                  </option>
+                  <label class="booking-time-card">
+                    <input type="radio" name="id_fascia" value="<?= (int)$f['id_fascia'] ?>" required>
+                    <span class="booking-time-date"><?= date('d/m/Y', strtotime($f['data'])) ?></span>
+                    <span class="booking-time-hour"><?= substr($f['ora_ingresso'], 0, 5) ?></span>
+                    <span class="booking-time-seats">Capienza ordinaria: <?= $posti ?> posti</span>
+                  </label>
                 <?php endforeach; ?>
-              </select>
+              </div>
             <?php endif; ?>
-          </div>
-        <?php else: ?>
-          <div>
-            <label class="block text-sm font-body font-bold text-antracite mb-1">Data visita <span class="text-red-500">*</span></label>
-            <input type="date" name="data_visita" required min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>"
-                   class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
-          </div>
-        <?php endif; ?>
+          <?php else: ?>
+            <div class="booking-field">
+              <label>Data visita <span class="text-red-500">*</span></label>
+              <input type="date" name="data_visita" required min="<?= date('Y-m-d') ?>" value="<?= date('Y-m-d') ?>">
+            </div>
+          <?php endif; ?>
+        </section>
 
-        <section class="border-t border-avorio-dark pt-6">
-          <h3 class="font-display text-xl font-bold text-antracite mb-2">Partecipanti e categorie biglietto</h3>
-          <p class="text-sm text-gray-500 mb-4">
-            Indica quanti biglietti vuoi per ogni categoria. Puoi creare un unico ordine misto, per esempio 20 studenti ridotti, 1 disabile e 2 accompagnatori.
-          </p>
-
-          <div class="grid sm:grid-cols-2 gap-4">
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">👥</span>Partecipanti e categorie</h3>
+          <p class="text-sm text-gray-500 mb-4">Indica quanti biglietti vuoi per ogni categoria. Puoi creare un ordine misto per studenti, riduzioni e accompagnatori.</p>
+          <div class="grid sm:grid-cols-2 gap-3">
             <?php foreach ($tariffe as $t): ?>
-              <div class="border border-avorio-dark rounded-xl bg-white p-4">
-                <label class="block text-sm font-body font-bold text-antracite mb-1" for="tariffa-classe-<?= (int)$t['id_tariffa'] ?>">
-                  <?= clean($t['categoria']) ?>
-                </label>
-                <p class="text-xs text-gray-500 mb-3">
+              <article class="booking-ticket-card">
+                <span class="booking-ticket-name"><?= clean($t['categoria']) ?></span>
+                <span class="booking-ticket-meta">
                   € <?= number_format((float)$t['prezzo'], 2, ',', '.') ?>
                   <?= $t['documento_richiesto'] ? ' · documento: '.clean($t['documento_richiesto']) : '' ?>
-                </p>
-                <input
-                  type="number"
-                  id="tariffa-classe-<?= (int)$t['id_tariffa'] ?>"
-                  name="tariffa_quantita[<?= (int)$t['id_tariffa'] ?>]"
-                  min="0"
-                  max="99"
-                  value="0"
-                  class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro"
-                >
-              </div>
+                </span>
+                <label class="sr-only" for="tariffa-classe-<?= (int)$t['id_tariffa'] ?>">Quantità <?= clean($t['categoria']) ?></label>
+                <input type="number" id="tariffa-classe-<?= (int)$t['id_tariffa'] ?>" name="tariffa_quantita[<?= (int)$t['id_tariffa'] ?>]" min="0" max="99" value="0">
+              </article>
             <?php endforeach; ?>
           </div>
 
-          <div class="mt-4 border border-avorio-dark rounded-xl bg-avorio p-4">
-            <label class="block text-sm font-body font-bold text-antracite mb-1">Numero docenti accompagnatori <span class="text-red-500">*</span></label>
-            <input type="number" name="numero_docenti" min="0" value="2" required
-                   class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro">
-            <p class="text-xs text-gray-500 mt-1">I docenti accompagnatori hanno biglietto a € 0,00.</p>
+          <div class="mt-4 booking-ticket-card bg-avorio">
+            <span class="booking-ticket-name">Docenti accompagnatori</span>
+            <span class="booking-ticket-meta">Biglietto gratuito, pari a € 0,00</span>
+            <label class="sr-only" for="numero-docenti">Numero docenti accompagnatori</label>
+            <input id="numero-docenti" type="number" name="numero_docenti" min="0" value="2" required>
           </div>
         </section>
 
-        <div>
-          <label class="block text-sm font-body font-bold text-antracite mb-3">Servizi opzionali</label>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">✨</span>Servizi opzionali</h3>
           <?php if (empty($servizi)): ?>
             <p class="text-sm text-gray-500">Nessun servizio opzionale disponibile.</p>
           <?php else: ?>
             <div class="grid sm:grid-cols-2 gap-3">
               <?php foreach ($servizi as $s): ?>
-                <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer">
-                  <input type="checkbox" name="servizi[]" value="<?= (int)$s['id_servizio'] ?>" class="mt-1">
-                  <span>
-                    <span class="block font-bold text-antracite text-sm"><?= clean($s['nome']) ?> · € <?= number_format((float)$s['prezzo'], 2, ',', '.') ?></span>
-                    <span class="block text-xs text-gray-500 mt-1"><?= clean($s['descrizione'] ?? '') ?></span>
-                  </span>
+                <label class="booking-service-card">
+                  <input type="checkbox" name="servizi[]" value="<?= (int)$s['id_servizio'] ?>">
+                  <span class="booking-service-name"><?= clean($s['nome']) ?> · € <?= number_format((float)$s['prezzo'], 2, ',', '.') ?></span>
+                  <span class="booking-service-desc"><?= clean($s['descrizione'] ?? '') ?></span>
                 </label>
               <?php endforeach; ?>
             </div>
             <p class="text-xs text-gray-500 mt-3">I servizi opzionali selezionati vengono associati a tutti i partecipanti indicati.</p>
           <?php endif; ?>
-        </div>
+        </section>
 
-        <div>
-          <label class="block text-sm font-body font-bold text-antracite mb-1">Note per il museo</label>
-          <textarea name="note_scuola" rows="3" placeholder="Eventuali esigenze particolari, accessibilità, orari del pullman, ecc."
-                    class="w-full px-4 py-3 border border-gray-200 rounded-lg font-body text-sm focus:outline-none focus:border-oro focus:ring-1 focus:ring-oro"></textarea>
-        </div>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">📝</span>Note per il museo</h3>
+          <div class="booking-field">
+            <label>Esigenze particolari</label>
+            <textarea name="note_scuola" rows="3" placeholder="Accessibilità, orari del pullman, esigenze organizzative, ecc."></textarea>
+          </div>
+        </section>
 
-        <div class="border-t border-avorio-dark pt-6">
-          <label class="block text-sm font-body font-bold text-antracite mb-3">Metodo di pagamento <span class="text-red-500">*</span></label>
+        <section class="booking-section">
+          <h3 class="booking-section-title"><span class="booking-section-badge">💳</span>Metodo di pagamento</h3>
           <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
-              <input type="radio" name="metodo_pagamento" value="contanti" required class="mt-1">
-              <span>
-                <span class="block font-bold text-antracite text-sm">Contanti in cassa</span>
-                <span class="block text-xs text-gray-500 mt-1">L'ordine viene emesso, ma i biglietti restano non pagati fino al saldo.</span>
-              </span>
+            <label class="booking-payment-card">
+              <input type="radio" name="metodo_pagamento" value="contanti" required>
+              <span class="booking-payment-name">Contanti</span>
+              <span class="booking-payment-desc">Pagamento in cassa.</span>
             </label>
-            <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
-              <input type="radio" name="metodo_pagamento" value="carta" required class="mt-1" checked>
-              <span>
-                <span class="block font-bold text-antracite text-sm">Carta di credito</span>
-                <span class="block text-xs text-gray-500 mt-1">Pagamento simulato con dati carta.</span>
-              </span>
+            <label class="booking-payment-card">
+              <input type="radio" name="metodo_pagamento" value="carta" required checked>
+              <span class="booking-payment-name">Carta</span>
+              <span class="booking-payment-desc">Pagamento simulato.</span>
             </label>
-            <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
-              <input type="radio" name="metodo_pagamento" value="paypal" required class="mt-1">
-              <span>
-                <span class="block font-bold text-antracite text-sm">PayPal</span>
-                <span class="block text-xs text-gray-500 mt-1">Simulazione accesso PayPal.</span>
-              </span>
+            <label class="booking-payment-card">
+              <input type="radio" name="metodo_pagamento" value="paypal" required>
+              <span class="booking-payment-name">PayPal</span>
+              <span class="booking-payment-desc">Accesso simulato.</span>
             </label>
             <?php if (isLogged()): ?>
-            <label class="flex gap-3 items-start border border-avorio-dark rounded-xl p-4 hover:border-oro transition cursor-pointer bg-white">
-              <input type="radio" name="metodo_pagamento" value="saldo" required class="mt-1">
-              <span>
-                <span class="block font-bold text-antracite text-sm">Saldo utente</span>
-                <span class="block text-xs text-gray-500 mt-1">Usa il portafoglio virtuale. Saldo: € <?= number_format(saldoUtenteCorrente(), 2, ',', '.') ?></span>
-              </span>
+            <label class="booking-payment-card">
+              <input type="radio" name="metodo_pagamento" value="saldo" required>
+              <span class="booking-payment-name">Saldo</span>
+              <span class="booking-payment-desc">Portafoglio: € <?= number_format(saldoUtenteCorrente(), 2, ',', '.') ?></span>
             </label>
             <?php endif; ?>
           </div>
-        </div>
+        </section>
 
-        <div class="border-t border-avorio-dark pt-6 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-          <p class="text-xs text-gray-500 max-w-md">Premendo conferma accederai a una pagina di pagamento simulato. Il numero di studenti e docenti non ha limite massimo nella prenotazione classe.</p>
-          <button type="submit" class="btn-oro px-7 py-3 rounded font-body text-sm uppercase tracking-wide">
-            Conferma prenotazione classe
-          </button>
+        <div class="booking-submit-bar">
+          <p class="text-xs text-gray-500 max-w-md">Premendo conferma accederai a una pagina di pagamento simulato. La prenotazione classe non ha limite massimo di studenti e docenti.</p>
+          <button type="submit" class="btn-oro px-7 py-3 rounded font-body text-sm uppercase tracking-wide">Conferma prenotazione classe</button>
         </div>
       </form>
     </section>
 
-    <aside class="bg-white rounded-2xl shadow border border-avorio-dark p-6 h-fit">
-      <h2 class="font-display text-2xl font-bold text-antracite mb-4">Riepilogo</h2>
-      <?php if ($tipo === 'esposizione'): ?>
-        <p class="text-sm text-gray-500 mb-4"><?= clean($esposizione['descrizione'] ?? '') ?></p>
-        <div class="text-xs text-acciaio font-body border-t border-avorio-dark pt-4">
-          <div>Periodo: <?= date('d/m/Y', strtotime($esposizione['data_inizio'])) ?> → <?= date('d/m/Y', strtotime($esposizione['data_fine'])) ?></div>
+    <aside class="booking-summary">
+      <div class="booking-summary-top">
+        <p class="booking-kicker text-acciaio">Riepilogo scuola</p>
+        <h2 class="booking-summary-title"><?= $tipo === 'base' ? 'Visita didattica' : clean($esposizione['titolo'] ?? 'Esposizione') ?></h2>
+      </div>
+      <div class="booking-summary-body">
+        <?php if ($tipo === 'esposizione'): ?>
+          <p class="text-sm text-gray-600 mb-4"><?= clean($esposizione['descrizione'] ?? '') ?></p>
+          <div class="booking-summary-row"><span>Dal</span><strong><?= date('d/m/Y', strtotime($esposizione['data_inizio'])) ?></strong></div>
+          <div class="booking-summary-row"><span>Al</span><strong><?= date('d/m/Y', strtotime($esposizione['data_fine'])) ?></strong></div>
+        <?php else: ?>
+          <p class="text-sm text-gray-600 mb-4">Il biglietto base consente l'accesso alle collezioni permanenti. Questa modalità è pensata per gruppi classe e accompagnatori.</p>
+        <?php endif; ?>
+        <div class="mt-5 rounded-xl bg-avorio p-4 text-sm text-gray-600 space-y-2">
+          <p><strong>Studenti:</strong> pagano la tariffa scelta.</p>
+          <p><strong>Docenti:</strong> biglietto gratuito.</p>
+          <p>Conserva il codice ordine: servirà per visualizzare e stampare i biglietti della classe anche senza account.</p>
         </div>
-      <?php else: ?>
-        <p class="text-sm text-gray-500 mb-4">Il biglietto base consente l'accesso alle collezioni permanenti del museo nella data selezionata. Questa modalità è pensata per gruppi classe e accompagnatori.</p>
-      <?php endif; ?>
-      <div class="mt-5 rounded-xl bg-avorio p-4 text-sm text-gray-600 space-y-2">
-        <p><strong>Studenti:</strong> pagano la tariffa scelta.</p>
-        <p><strong>Docenti:</strong> biglietto gratuito, pari a € 0,00.</p>
-        <p>Conserva il codice ordine: sarà necessario per visualizzare e stampare i biglietti della classe anche senza account.</p>
       </div>
     </aside>
   </div>
 
   <?php endif; ?>
+  </div>
 </main>
 
 <?php include __DIR__ . '/footer.php'; ?>
